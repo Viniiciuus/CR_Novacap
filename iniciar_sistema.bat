@@ -1,110 +1,55 @@
 @echo off
-setlocal enabledelayedexpansion
-
-:: ======================================================
-:: 🚀 INICIAR SISTEMA CR-NOVACAP (Flask + MySQL Remoto)
-:: ======================================================
-:: Banco central: 10.115.14.61
-:: Cada usuário roda o sistema localmente e acessa pelo
-:: IP da própria máquina (ex: http://10.115.14.22:5000)
-:: ======================================================
-
+title Sistema CR-NOVACAP
 cls
-cd /d %~dp0
 
 echo =====================================================
-echo      INICIANDO O SISTEMA CR DA NOVACAP
+echo       INICIANDO O SISTEMA CR DA NOVACAP
 echo =====================================================
 echo.
 
-:: -------------------------------------------------------
-:: 🔍 1. Obter IP local da máquina
-:: -------------------------------------------------------
-for /f "tokens=2 delims=:" %%a in ('ipconfig ^| findstr /C:"IPv4"') do (
-    set IP_LOCAL=%%a
-)
-set IP_LOCAL=%IP_LOCAL: =%
+:: 1. Entrar na pasta do projeto
+cd /d "%~dp0"
 
-echo IP da maquina atual: %IP_LOCAL%
-echo.
-
-:: -------------------------------------------------------
-:: 🔍 2. Testar conexão com o banco remoto
-:: -------------------------------------------------------
-set DB_HOST=10.115.14.61
-echo Verificando acesso ao banco de dados em %DB_HOST% ...
-ping -n 1 %DB_HOST% >nul
-
-if errorlevel 1 (
-    echo.
-    echo [ERRO] Nao foi possivel conectar ao banco de dados: %DB_HOST%
-    echo Verifique se o servidor do banco esta ligado e na rede.
-    echo.
-    pause
-    exit /b 1
-)
-
-echo Banco acessivel.
-echo.
-
-:: -------------------------------------------------------
-:: 📦 3. Instalar/atualizar dependências
-:: -------------------------------------------------------
-echo Verificando dependencias Python...
-pip install --disable-pip-version-check --quiet -r requirements.txt
-
-if errorlevel 1 (
-    echo [AVISO] Houve um problema ao instalar dependencias.
-    echo Continuando mesmo assim...
+:: 2. Ativar Ambiente Virtual Python (venv)
+if exist "venv\Scripts\activate.bat" (
+    echo [INFO] Ativando ambiente virtual...
+    call venv\Scripts\activate.bat
 ) else (
-    echo Dependencias OK.
+    echo [AVISO] Pasta venv nao encontrada! Tentando rodar sem venv...
 )
 echo.
 
-:: -------------------------------------------------------
-:: ▶️ 4. Iniciar o sistema (acessível pela rede)
-:: -------------------------------------------------------
-echo Iniciando servidor Flask na rede local...
+:: 3. Definir variaveis de ambiente do Flask
+set FLASK_APP=run.py
+set FLASK_ENV=development
+
+:: 4. Verificar dependencias do requirements.txt
+echo [INFO] Verificando dependencias...
+pip install -r requirements.txt --quiet
 echo.
+
 echo =====================================================
-echo  SISTEMA CR-NOVACAP INICIADO COM SUCESSO!
-echo =====================================================
-echo.
-echo Acesse pelo navegador utilizando:
-echo.
-echo     http://%IP_LOCAL%:5000
-echo.
-echo Ou localmente nesta maquina:
-echo     http://127.0.0.1:5000
-echo.
-echo (Mantenha esta janela aberta enquanto o sistema estiver em uso.)
+echo  SISTEMA PRONTO PARA INICIAR!
 echo =====================================================
 echo.
+echo Acesse no seu navegador:
+echo    http://localhost:5000
+echo.
+echo (Mantenha esta janela aberta enquanto usar o sistema)
+echo =====================================================
+echo.
 
-:: =========================================================
-:: Inicia o Flask escutando em toda a rede (0.0.0.0)
-:: =========================================================
+:: 5. Executar a aplicacao Flask
+python run.py
 
-:: Tenta primeiro com "flask run" (forma recomendada)
-flask run --host=0.0.0.0 --port=5000
-
-:: Se o comando acima falhar, tenta a forma alternativa:
-if errorlevel 1 (
+if %ERRORLEVEL% NEQ 0 (
     echo.
-    echo [AVISO] "flask run" nao funcionou. Tentando com python...
-    echo.
-    python -m flask run --host=0.0.0.0 --port=5000
-)
-
-:: Se ainda assim não funcionar, tenta rodar diretamente o run.py
-if errorlevel 1 (
-    echo.
-    echo [AVISO] Tentando executar diretamente pelo run.py...
-    python run.py
+    echo [TENTATIVA 2] Executando via "flask run"...
+    flask run --host=0.0.0.0 --port=5000
 )
 
 echo.
 echo =====================================================
-echo  SISTEMA FINALIZADO
+echo  O SERVIDOR FOI FINALIZADO OU OCORREU UM ERRO.
 echo =====================================================
 pause
