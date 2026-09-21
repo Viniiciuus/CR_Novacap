@@ -2,156 +2,94 @@
 {% block title %}Cadastro de Usuário – Central de Relacionamento NOVACAP{% endblock %}
 
 {% block content %}
-<section class="auth-container fade-in" 
-         style="display:flex;flex-direction:column;align-items:center;justify-content:center;
-                min-height:calc(100vh - 220px);padding:2rem 1rem;text-align:center;">
+<section class="auth-container fade-in">
 
   <!-- Cabeçalho institucional -->
-  <div class="login-header" style="margin-bottom:2rem;">
-    <h1 style="color:#002d62;font-size:clamp(1.8rem,3vw,2.2rem);font-weight:700;margin-bottom:0.3rem;">
-      Central de Relacionamento
-    </h1>
-    <h2 style="color:#005fa3;font-size:clamp(1rem,2vw,1.2rem);font-weight:500;">
-      Cadastro de Novo Usuário
-    </h2>
-  </div>
+  <header class="auth-header">
+    <h1>Central de Relacionamento</h1>
+    <h2>Cadastro de Novo Usuário</h2>
+  </header>
 
   <!-- Cartão de Cadastro -->
-  <div class="auth-card" style="
-        background-color:#ffffff;
-        border:1px solid #e0e0e0;
-        border-radius:12px;
-        box-shadow:0 4px 16px rgba(0,0,0,0.1);
-        width:100%;
-        max-width:520px;
-        padding:2.5rem 2rem;
-        text-align:left;">
+  <div class="auth-card auth-card-wide">
 
-    <!-- Mensagens Flash -->
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        {% for category, message in messages %}
-          <div class="alert alert-{{ category }}" style="margin-bottom:1rem;text-align:center;">
-            {{ message }}
-          </div>
-        {% endfor %}
-      {% endif %}
-    {% endwith %}
+    <h3 class="auth-card-title">
+      <i class="fas fa-user-plus"></i>
+      <span>Solicitação de Acesso</span>
+    </h3>
 
     <!-- Formulário -->
     <form method="POST" action="{{ url_for('main_bp.cadastro') }}" novalidate>
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
 
       <!-- Nome completo -->
-      <div class="form-group" style="margin-bottom:1rem;">
-        <label for="nome_completo" style="font-weight:600;color:#002d62;">Nome Completo</label>
-        <div class="input-with-icon" style="
-              display:flex;align-items:center;
-              border:1px solid #cfd8dc;
-              border-radius:8px;
-              padding:0.6rem 0.8rem;">
-          <i class="fas fa-user" style="color:#005fa3;margin-right:0.5rem;"></i>
-          <input type="text" id="nome_completo" name="nome_completo" placeholder="Informe seu nome completo" required
-                 style="border:none;outline:none;width:100%;font-size:0.95rem;">
+      <div class="form-group">
+        <label for="nome_completo">Nome Completo</label>
+        <div class="input-with-icon">
+          <i class="fas fa-user"></i>
+          <input type="text" id="nome_completo" name="nome_completo" placeholder="Informe seu nome completo" required>
         </div>
       </div>
 
       <!-- E-mail institucional -->
-      <div class="form-group" style="margin-bottom:1rem;">
-        <label for="email" style="font-weight:600;color:#002d62;">E-mail Institucional</label>
-        <div class="input-with-icon" style="
-              display:flex;align-items:center;
-              border:1px solid #cfd8dc;
-              border-radius:8px;
-              padding:0.6rem 0.8rem;">
-          <i class="fas fa-envelope" style="color:#005fa3;margin-right:0.5rem;"></i>
-          <input type="email" id="email" name="email" placeholder="ex: nome.sobrenome@novacap.df.gov.br" required
-                 style="border:none;outline:none;width:100%;font-size:0.95rem;">
+      <div class="form-group">
+        <label for="email">E-mail Institucional</label>
+        <div class="input-with-icon">
+          <i class="fas fa-envelope"></i>
+          <input type="email" id="email" name="email" placeholder="ex: nome.sobrenome@novacap.df.gov.br" required>
         </div>
       </div>
 
       <!-- Nome de usuário -->
-      <div class="form-group" style="margin-bottom:1rem;">
-        <label for="username" style="font-weight:600;color:#002d62;">Nome de Usuário</label>
-        <div class="input-with-icon" style="
-              display:flex;align-items:center;
-              border:1px solid #cfd8dc;
-              border-radius:8px;
-              padding:0.6rem 0.8rem;">
-          <i class="fas fa-id-badge" style="color:#005fa3;margin-right:0.5rem;"></i>
-          <input type="text" id="username" name="username" placeholder="ex: nome.sobrenome" required
-                 style="border:none;outline:none;width:100%;font-size:0.95rem;">
+      <div class="form-group">
+        <label for="username">Nome de Usuário</label>
+        <div class="input-with-icon">
+          <i class="fas fa-id-badge"></i>
+          <input type="text" id="username" name="username" placeholder="ex: nome.sobrenome" required>
         </div>
       </div>
 
       <!-- Senha e Confirmação -->
-      <div class="form-row" style="display:flex;flex-wrap:wrap;gap:1rem;">
-        <div class="form-col" style="flex:1;">
-          <label for="senha" style="font-weight:600;color:#002d62;">Senha</label>
-          <div class="input-with-icon" style="
-                display:flex;align-items:center;
-                border:1px solid #cfd8dc;
-                border-radius:8px;
-                padding:0.6rem 0.8rem;">
-            <i class="fas fa-lock" style="color:#005fa3;margin-right:0.5rem;"></i>
-            <input type="password" id="senha" name="senha" placeholder="Digite sua senha" required
-                   style="border:none;outline:none;width:100%;font-size:0.95rem;">
+      <div class="form-row">
+        <div class="form-col">
+          <div class="form-group">
+            <label for="senha">Senha</label>
+            <div class="input-with-icon">
+              <i class="fas fa-lock"></i>
+              <input type="password" id="senha" name="senha" placeholder="Digite sua senha" required>
+            </div>
           </div>
         </div>
 
-        <div class="form-col" style="flex:1;">
-          <label for="confirmar_senha" style="font-weight:600;color:#002d62;">Confirmar Senha</label>
-          <div class="input-with-icon" style="
-                display:flex;align-items:center;
-                border:1px solid #cfd8dc;
-                border-radius:8px;
-                padding:0.6rem 0.8rem;">
-            <i class="fas fa-check-circle" style="color:#005fa3;margin-right:0.5rem;"></i>
-            <input type="password" id="confirmar_senha" name="confirmar_senha" placeholder="Confirme sua senha" required
-                   style="border:none;outline:none;width:100%;font-size:0.95rem;">
+        <div class="form-col">
+          <div class="form-group">
+            <label for="confirmar_senha">Confirmar Senha</label>
+            <div class="input-with-icon">
+              <i class="fas fa-check-circle"></i>
+              <input type="password" id="confirmar_senha" name="confirmar_senha" placeholder="Confirme sua senha" required>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- Botões -->
-      <div style="text-align:center;margin-top:2rem;">
-        <button type="submit" class="btn-primary" style="
-          background:linear-gradient(90deg,#004a8f,#007bff);
-          color:white;
-          border:none;
-          border-radius:8px;
-          padding:0.9rem 2rem;
-          font-size:1rem;
-          font-weight:600;
-          cursor:pointer;
-          box-shadow:0 3px 8px rgba(0,0,0,0.15);
-          transition:all 0.25s ease;">
-          <i class="fas fa-user-plus"></i> Solicitar Cadastro
+      <!-- Botões de Ação -->
+      <div class="button-toolbar" style="justify-content: center; margin-top: 2rem;">
+        <button type="submit" class="btn btn-primary">
+          <i class="fas fa-paper-plane"></i>
+          <span>Solicitar Cadastro</span>
         </button>
 
-        <a href="{{ url_for('main_bp.login') }}" style="margin-left:1rem;text-decoration:none;">
-          <button type="button" class="btn-outline-gray" style="
-            background-color:transparent;
-            border:1px solid #ccc;
-            color:#333;
-            border-radius:8px;
-            padding:0.9rem 2rem;
-            font-size:1rem;
-            cursor:pointer;
-            transition:0.3s;">
-            <i class="fas fa-arrow-left"></i> Voltar
-          </button>
+        <a href="{{ url_for('main_bp.login') }}" class="btn btn-outline-gray">
+          <i class="fas fa-arrow-left"></i>
+          <span>Voltar ao Login</span>
         </a>
       </div>
     </form>
 
     <!-- Aviso institucional -->
-    <p style="margin-top:2rem;font-size:0.9rem;color:#777;text-align:center;">
-      ⚠ O acesso será liberado somente após autorização do administrador responsável pela Central de Relacionamento.
+    <p style="margin-top: 2rem; font-size: 0.88rem; color: var(--texto-muted); text-align: center;">
+      <i class="fas fa-shield-alt"></i> O acesso será liberado mediante validação e aprovação do administrador do sistema.
     </p>
   </div>
 </section>
-
-<link rel="stylesheet" 
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 {% endblock %}

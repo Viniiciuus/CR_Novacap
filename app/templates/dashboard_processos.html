@@ -2,14 +2,12 @@
 {% block title %}Painel de Controle – Processos | Central de Relacionamento NOVACAP{% endblock %}
 
 {% block content %}
-<section class="page-section fade-in" style="max-width: 1200px; margin: 2rem auto;">
+<section class="page-section fade-in">
 
   <!-- Cabeçalho -->
-  <header class="text-center" style="margin-bottom: 2rem;">
-    <h1 style="color:#004a8f; font-size:clamp(1.9rem,3vw,2.6rem); font-weight:700; letter-spacing:0.5px;">
-      <i class="fas fa-chart-pie"></i> Painel de Controle – Processos
-    </h1>
-    <p style="color:#555; font-size:1.05rem; max-width:760px; margin:0.8rem auto; line-height:1.6;">
+  <header class="page-header">
+    <h1><i class="fas fa-chart-pie"></i> Painel de Controle – Processos</h1>
+    <p>
       Acompanhe em tempo real os principais indicadores da tramitação de processos, 
       identificando volumes, origens e resultados das demandas sob responsabilidade da NOVACAP.
     </p>
@@ -27,10 +25,9 @@
       <p>{{ total_em_atendimento or 0 }}</p>
     </div>
   </div>
-  
 
   <!-- Seção: Tramitação -->
-  <h2 class="section-title"><i class="fas fa-route"></i> Tramitação</h2>
+  <h2 class="section-title"><i class="fas fa-route"></i> Tramitação por Diretoria</h2>
   <div class="dashboard-grid">
     <div class="card card-dc">
       <h3><i class="fas fa-city"></i> Diretoria das Cidades</h3>
@@ -68,7 +65,7 @@
   </div>
 
   <!-- Seção: Especiais -->
-  <h2 class="section-title"><i class="fas fa-exclamation-triangle"></i> Especiais</h2>
+  <h2 class="section-title"><i class="fas fa-exclamation-triangle"></i> Demandas Especiais</h2>
   <div class="dashboard-grid">
     <div class="card card-urgencia">
       <h3><i class="fas fa-bolt"></i> Solicitação de Urgência</h3>
@@ -84,21 +81,18 @@
     </div>
   </div>
 
-  <!-- Botões de Ação -->
-  <div class="button-toolbar"
-       style="display:flex; justify-content:center; flex-wrap:wrap; gap:1rem; margin-top:2.8rem;">
-    
+  <!-- Botões de Ação Rápida -->
+  <div class="button-toolbar" style="justify-content: center; margin-top: 3rem;">
     <a href="{{ url_for('processos_bp.cadastro_processo') }}" class="btn btn-primary">
       <i class="fas fa-plus-circle"></i> Novo Processo
     </a>
 
     <a href="{{ url_for('processos_bp.consultar_processos') }}" class="btn btn-outline-blue">
-      <i class="fas fa-list"></i> Consultar Processos
+      <i class="fas fa-search"></i> Consultar Processos
     </a>
 
-    <!-- CORRIGIDO: rota antiga removida -->
     <a href="{{ url_for('relatorios_bp.relatorios_avancados') }}" class="btn btn-outline-blue">
-      <i class="fas fa-chart-bar"></i> Relatórios
+      <i class="fas fa-chart-line"></i> Relatórios Avançados
     </a>
 
     {% if session.get('is_admin') %}
@@ -109,112 +103,4 @@
   </div>
 
 </section>
-
-<!-- Font Awesome -->
-<link rel="stylesheet" 
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-
-<!-- Estilo interno adicional -->
-<style>
-  .section-title {
-    color: #003366;
-    font-size: 1.3rem;
-    font-weight: 600;
-    margin-top: 2rem;
-    margin-bottom: 1rem;
-    border-left: 4px solid #005CA9;
-    padding-left: 0.5rem;
-  }
-
-  .dashboard-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 2rem;
-  }
-
-  .card {
-    background: white;
-    border-radius: 10px;
-    padding: 1.5rem;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    text-align: center;
-    transition: all 0.25s ease;
-  }
-
-  .card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 5px 14px rgba(0,0,0,0.15);
-  }
-
-  .card h3 {
-    font-size: 1rem;
-    font-weight: 600;
-    color: #333;
-    margin-bottom: 0.8rem;
-  }
-
-  .card p {
-    font-size: 1.9rem;
-    font-weight: 700;
-    margin: 0;
-  }
-
-  .btn {
-    padding: 0.9rem 1.8rem;
-    font-size: 1rem;
-    font-weight: 600;
-    border-radius: 8px;
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    transition: all 0.25s ease;
-  }
-
-  .btn-primary {
-    background: linear-gradient(90deg, #004a8f, #007bff);
-    color: white;
-    border: none;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-  }
-  .btn-primary:hover {
-    background: linear-gradient(90deg, #003d7a, #0066e4);
-    transform: translateY(-2px);
-  }
-
-  .btn-outline-blue {
-    border: 2px solid #005CA9;
-    color: #005CA9;
-    background: transparent;
-  }
-  .btn-outline-blue:hover {
-    background: #005CA9;
-    color: white;
-  }
-
-  .btn-warning {
-    background-color: #ffc107;
-    color: #212529;
-    border: none;
-  }
-  .btn-warning:hover {
-    background-color: #e0a800;
-  }
-
-  .card-blue { border-top: 4px solid #005CA9; color: #005CA9; }
-  .card-info { border-top: 4px solid #007bff; color: #007bff; }
-  .card-green { border-top: 4px solid #2e7d32; color: #2e7d32; }
-  .card-cyan { border-top: 4px solid #00acc1; color: #00acc1; }
-  .card-dc { border-top: 4px solid #4e73df; color: #4e73df; }
-  .card-do { border-top: 4px solid #6f42c1; color: #6f42c1; }
-  .card-dp { border-top: 4px solid #17a2b8; color: #17a2b8; }
-  .card-gray { border-top: 4px solid #6c757d; color: #6c757d; }
-  .card-success { border-top: 4px solid #28a745; color: #28a745; }
-  .card-warning { border-top: 4px solid #ffc107; color: #856404; }
-  .card-danger { border-top: 4px solid #dc3545; color: #dc3545; }
-  .card-urgencia { border-top: 4px solid #e53935; color: #e53935; }
-  .card-prazo { border-top: 4px solid #ff9800; color: #ff9800; }
-  .card-ouvidoria { border-top: 4px solid #1976d2; color: #1976d2; }
-</style>
 {% endblock %}

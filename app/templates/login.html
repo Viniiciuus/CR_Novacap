@@ -2,112 +2,61 @@
 {% block title %}Login – Central de Relacionamento NOVACAP{% endblock %}
 
 {% block content %}
-<section class="auth-container fade-in"
-         style="display:flex;flex-direction:column;align-items:center;justify-content:center;
-                min-height:calc(100vh - 220px);padding:2rem 1rem;text-align:center;">
+<section class="auth-container fade-in">
 
   <!-- Cabeçalho institucional -->
-  <div class="login-header" style="margin-bottom:2rem;">
-    <h1 style="color:#002d62;font-size:clamp(1.8rem,3vw,2.2rem);font-weight:700;margin-bottom:0.3rem;">
-      Central de Relacionamento
-    </h1>
-    <h2 style="color:#005fa3;font-size:clamp(1rem,2vw,1.2rem);font-weight:500;">
-      Companhia Urbanizadora da Nova Capital do Brasil
-    </h2>
-  </div>
+  <header class="auth-header">
+    <h1>Central de Relacionamento</h1>
+    <h2>Companhia Urbanizadora da Nova Capital do Brasil</h2>
+  </header>
 
   <!-- Cartão de login -->
-  <div class="auth-card" style="
-        background-color:#ffffff;
-        border:1px solid #e0e0e0;
-        border-radius:12px;
-        box-shadow:0 4px 16px rgba(0,0,0,0.1);
-        width:100%;
-        max-width:420px;
-        padding:2.5rem 2rem;
-        text-align:left;">
+  <div class="auth-card">
 
-    <h3 style="color:#002d62;text-align:center;margin-bottom:1.5rem;">
-      <i class="fas fa-lock"></i> Acesso ao Sistema
+    <h3 class="auth-card-title">
+      <i class="fas fa-lock"></i>
+      <span>Acesso ao Sistema</span>
     </h3>
-
-    <!-- Mensagens Flash -->
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        {% for category, message in messages %}
-          <div class="alert alert-{{ category }}" style="margin-bottom:1rem;text-align:center;">
-            {{ message }}
-          </div>
-        {% endfor %}
-      {% endif %}
-    {% endwith %}
 
     <!-- Formulário de Login -->
     <form method="POST" action="{{ url_for('main_bp.login') }}" novalidate>
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
 
       <!-- Usuário -->
-      <div class="form-group" style="margin-bottom:1rem;">
-        <label for="username" style="font-weight:600;color:#002d62;">Nome de Usuário</label>
-        <div class="input-with-icon" style="
-              display:flex;align-items:center;
-              border:1px solid #cfd8dc;
-              border-radius:8px;
-              padding:0.6rem 0.8rem;">
-          <i class="fas fa-user" style="color:#005fa3;margin-right:0.5rem;"></i>
+      <div class="form-group">
+        <label for="username">Nome de Usuário</label>
+        <div class="input-with-icon">
+          <i class="fas fa-user"></i>
           <input type="text" id="username" name="username" placeholder="ex: nome.sobrenome"
-                 required autocomplete="username"
-                 style="border:none;outline:none;width:100%;font-size:0.95rem;">
+                 required autocomplete="username">
         </div>
       </div>
 
       <!-- Senha -->
-      <div class="form-group" style="margin-bottom:1.5rem;">
-        <label for="password" style="font-weight:600;color:#002d62;">Senha</label>
-        <div class="input-with-icon" style="
-              display:flex;align-items:center;
-              border:1px solid #cfd8dc;
-              border-radius:8px;
-              padding:0.6rem 0.8rem;">
-          <i class="fas fa-lock" style="color:#005fa3;margin-right:0.5rem;"></i>
+      <div class="form-group">
+        <label for="password">Senha</label>
+        <div class="input-with-icon">
+          <i class="fas fa-key"></i>
           <input type="password" id="password" name="password" placeholder="Digite sua senha"
-                 required autocomplete="current-password"
-                 style="border:none;outline:none;width:100%;font-size:0.95rem;">
+                 required autocomplete="current-password">
         </div>
       </div>
 
       <!-- Botão principal -->
-      <div style="text-align:center;margin-top:2rem;">
-        <button type="submit" class="btn-primary" style="
-          background:linear-gradient(90deg,#004a8f,#007bff);
-          color:white;
-          border:none;
-          border-radius:8px;
-          padding:0.9rem 2.5rem;
-          font-size:1.05rem;
-          font-weight:600;
-          cursor:pointer;
-          box-shadow:0 3px 8px rgba(0,0,0,0.15);
-          transition:all 0.25s ease;">
-          <i class="fas fa-sign-in-alt"></i> Entrar
+      <div style="text-align:center; margin-top:2rem;">
+        <button type="submit" class="btn btn-primary" style="width:100%;">
+          <i class="fas fa-sign-in-alt"></i>
+          <span>Entrar no Sistema</span>
         </button>
       </div>
 
       <!-- Links de suporte -->
-      <div class="auth-links" style="text-align:center;margin-top:1.5rem;font-size:0.9rem;">
-        <a class="btn-link" href="{{ url_for('main_bp.cadastro') }}"
-           style="color:#005fa3;text-decoration:none;font-weight:500;">
-           Solicitar Cadastro</a>
-        <span class="sep" style="margin:0 0.5rem;color:#ccc;">•</span>
-        <a class="btn-link" href="{{ url_for('main_bp.trocar_senha') }}"
-           style="color:#005fa3;text-decoration:none;font-weight:500;">
-           Redefinir Senha</a>
+      <div class="auth-links">
+        <a href="{{ url_for('main_bp.cadastro') }}">Solicitar Cadastro</a>
+        <span style="margin: 0 0.5rem; color: var(--texto-muted);">•</span>
+        <a href="{{ url_for('main_bp.trocar_senha') }}">Redefinir Senha</a>
       </div>
     </form>
   </div>
 </section>
-
-<!-- Font Awesome -->
-<link rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 {% endblock %}

@@ -3,150 +3,149 @@
 {% block title %}Painel Administrativo – Central de Relacionamento NOVACAP{% endblock %}
 
 {% block content %}
+<section class="page-section fade-in painel-admin-full">
 
-<style>
-.painel-admin-full {
-    max-width: 1600px !important;
-    width: 95% !important;
-    margin: 2rem auto;
-}
-</style>
-
-<section class="container fade-in painel-admin-full">
-
-  <header class="text-center">
+  <!-- Cabeçalho -->
+  <header class="page-header">
     <h1><i class="fas fa-user-cog"></i> Painel Administrativo</h1>
-    <p style="color: var(--text-muted); margin-bottom: 1rem;">
-      Gerencie cadastros, permissões e bloqueios de usuários no sistema.
+    <p>
+      Gerencie usuários, permissões de acesso e modere cadastros no sistema institucional.
     </p>
   </header>
 
-  <!-- Barra de ações -->
-  <div class="button-group" style="justify-content: flex-end;">
-    <a href="{{ url_for('processos_bp.dashboard_processos') }}" class="btn-secondary">
-      <i class="fas fa-chart-bar"></i> Voltar ao Dashboard
-    </a>
-    <a href="{{ url_for('main_bp.logout') }}" class="btn-danger">
-      <i class="fas fa-sign-out-alt"></i> Sair
-    </a>
-  </div>
-
-  <!-- Busca -->
-  <form method="GET" action="{{ url_for('admin_bp.painel_admin') }}" class="filtros card" style="margin-top: 1.5rem; padding: 1rem;">
-    <div class="form-row" style="gap: 1rem; flex-wrap: wrap; align-items: center;">
-      <input type="text" name="q" placeholder="🔍 Buscar por nome, usuário ou e-mail..."
-             value="{{ request.args.get('q', '') }}" style="flex: 1; min-width: 300px;">
-      <button type="submit" class="btn-primary"><i class="fas fa-search"></i> Pesquisar</button>
-      {% if request.args.get('q') %}
-      <a href="{{ url_for('admin_bp.painel_admin') }}" class="btn-outline-gray">
-        <i class="fas fa-undo"></i> Limpar
-      </a>
-      {% endif %}
+  <!-- Barra de Busca -->
+  <form method="GET" action="{{ url_for('admin_bp.painel_admin') }}" class="card-form" style="padding: 1.25rem 1.6rem; margin-bottom: 1.8rem;">
+    <div class="form-row" style="margin-bottom: 0; align-items: center;">
+      <div style="flex: 1; min-width: 280px;">
+        <div class="input-with-icon">
+          <i class="fas fa-search"></i>
+          <input type="text" name="q" placeholder="Buscar por nome, usuário ou e-mail..."
+                 value="{{ request.args.get('q', '') }}">
+        </div>
+      </div>
+      <div class="button-group">
+        <button type="submit" class="btn btn-primary">
+          <i class="fas fa-search"></i> Pesquisar
+        </button>
+        {% if request.args.get('q') %}
+        <a href="{{ url_for('admin_bp.painel_admin') }}" class="btn btn-outline-gray">
+          <i class="fas fa-undo"></i> Limpar
+        </a>
+        {% endif %}
+      </div>
     </div>
   </form>
 
-  <!-- Mensagens -->
-  {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-      {% for category, message in messages %}
-        <div class="alert alert-{{ category }}" style="margin-top: 1rem;">{{ message }}</div>
-      {% endfor %}
-    {% endif %}
-  {% endwith %}
-
-  <!-- Tabela -->
+  <!-- Tabela de Usuários -->
   {% if usuarios %}
-  <div class="table-responsive" style="margin-top: 2rem;">
-    <table class="table-hover">
-      <thead>
-        <tr>
-          <th>Nome</th>
-          <th>Usuário</th>
-          <th>E-mail</th>
-          <th>Aprovado?</th>
-          <th>Admin?</th>
-          <th>Bloqueado?</th>
-          <th style="text-align: center;">Ações</th>
-        </tr>
-      </thead>
+  <div class="card-results" style="margin-top: 0;">
+    <div class="table-responsive">
+      <table class="styled-table">
+        <thead>
+          <tr>
+            <th>Nome</th>
+            <th>Usuário</th>
+            <th>E-mail</th>
+            <th style="text-align: center;">Aprovado?</th>
+            <th style="text-align: center;">Admin?</th>
+            <th style="text-align: center;">Bloqueado?</th>
+            <th style="text-align: center;">Ações</th>
+          </tr>
+        </thead>
 
-      <tbody>
-        {% for u in usuarios %}
-        <tr>
-          <td>{{ u.nome }}</td>
-          <td>{{ u.usuario }}</td>
-          <td>{{ u.email }}</td>
+        <tbody>
+          {% for u in usuarios %}
+          <tr>
+            <td><strong>{{ u.nome }}</strong></td>
+            <td>{{ u.usuario }}</td>
+            <td>{{ u.email }}</td>
 
-          <td>
-            {% if u.aprovado %}
-              <span style="color: var(--accent); font-weight: 600;"><i class="fas fa-check"></i> Sim</span>
-            {% else %}
-              <span style="color: var(--danger); font-weight: 600;"><i class="fas fa-times"></i> Não</span>
-            {% endif %}
-          </td>
-
-          <td>
-            {% if u.is_admin %}
-              <span style="color: var(--primary); font-weight: 600;"><i class="fas fa-user-tie"></i> Sim</span>
-            {% else %}
-              <span style="color: var(--text-muted);"><i class="fas fa-user"></i> Não</span>
-            {% endif %}
-          </td>
-
-          <td>
-            {% if u.bloqueado %}
-              <span style="color: var(--danger); font-weight: 600;"><i class="fas fa-lock"></i> Sim</span>
-            {% else %}
-              <span style="color: var(--accent); font-weight: 600;"><i class="fas fa-unlock"></i> Não</span>
-            {% endif %}
-          </td>
-
-          <td>
-            <div class="button-group" style="gap: 0.4rem; flex-wrap: wrap; justify-content: center;">
-
-              {% if not u.aprovado %}
-              <form method="POST" action="{{ url_for('admin_bp.aprovar_usuario', id_usuario=u.id_usuario) }}">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <button class="btn-success"><i class="fas fa-user-check"></i> Aprovar</button>
-              </form>
-              {% endif %}
-
-              {% if not u.is_admin %}
-              <form method="POST" action="{{ url_for('admin_bp.atribuir_admin', id_usuario=u.id_usuario) }}">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <button class="btn-warning"><i class="fas fa-user-shield"></i> Admin</button>
-              </form>
-              {% endif %}
-
-              {% if not u.bloqueado %}
-              <form method="POST" action="{{ url_for('admin_bp.bloquear_usuario', id_usuario=u.id_usuario) }}">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <button class="btn-danger"><i class="fas fa-user-slash"></i> Bloquear</button>
-              </form>
+            <td style="text-align: center;">
+              {% if u.aprovado %}
+                <span class="badge success"><i class="fas fa-check"></i> Sim</span>
               {% else %}
-              <form method="POST" action="{{ url_for('admin_bp.desbloquear_usuario', id_usuario=u.id_usuario) }}">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <button class="btn-outline-blue"><i class="fas fa-unlock"></i> Desbloquear</button>
-              </form>
+                <span class="badge danger"><i class="fas fa-times"></i> Não</span>
               {% endif %}
+            </td>
 
-            </div>
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
+            <td style="text-align: center;">
+              {% if u.is_admin %}
+                <span class="badge info"><i class="fas fa-user-shield"></i> Sim</span>
+              {% else %}
+                <span class="badge neutral"><i class="fas fa-user"></i> Não</span>
+              {% endif %}
+            </td>
 
-    </table>
+            <td style="text-align: center;">
+              {% if u.bloqueado %}
+                <span class="badge danger"><i class="fas fa-lock"></i> Sim</span>
+              {% else %}
+                <span class="badge success"><i class="fas fa-unlock"></i> Não</span>
+              {% endif %}
+            </td>
+
+            <td style="text-align: center;">
+              <div class="button-group" style="gap: 0.4rem; justify-content: center;">
+
+                {% if not u.aprovado %}
+                <form method="POST" action="{{ url_for('admin_bp.aprovar_usuario', id_usuario=u.id_usuario) }}" style="display:inline;">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <button type="submit" class="btn btn-success btn-sm" title="Aprovar usuário">
+                    <i class="fas fa-user-check"></i> Aprovar
+                  </button>
+                </form>
+                {% endif %}
+
+                {% if not u.is_admin %}
+                <form method="POST" action="{{ url_for('admin_bp.atribuir_admin', id_usuario=u.id_usuario) }}" style="display:inline;">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <button type="submit" class="btn btn-warning btn-sm" title="Promover para Administrador">
+                    <i class="fas fa-user-shield"></i> Admin
+                  </button>
+                </form>
+                {% endif %}
+
+                {% if not u.bloqueado %}
+                <form method="POST" action="{{ url_for('admin_bp.bloquear_usuario', id_usuario=u.id_usuario) }}" style="display:inline;">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <button type="submit" class="btn btn-danger btn-sm" title="Bloquear acesso">
+                    <i class="fas fa-user-slash"></i> Bloquear
+                  </button>
+                </form>
+                {% else %}
+                <form method="POST" action="{{ url_for('admin_bp.desbloquear_usuario', id_usuario=u.id_usuario) }}" style="display:inline;">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <button type="submit" class="btn btn-outline-blue btn-sm" title="Desbloquear acesso">
+                    <i class="fas fa-unlock"></i> Desbloquear
+                  </button>
+                </form>
+                {% endif %}
+
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+
+      </table>
+    </div>
   </div>
 
   {% else %}
-  <p style="margin-top: 2rem; text-align: center; color: var(--text-muted);">
-    Nenhum usuário encontrado.
-  </p>
+  <div class="card-form text-center" style="padding: 2.5rem 1rem;">
+    <p style="margin: 0; color: var(--texto-muted); font-size: 1rem;">
+      <i class="fas fa-users-slash" style="font-size: 1.8rem; display: block; margin-bottom: 0.6rem;"></i>
+      Nenhum usuário encontrado.
+    </p>
+  </div>
   {% endif %}
 
+  <!-- Barra de Retorno -->
+  <div class="button-toolbar" style="justify-content: center; margin-top: 2.5rem;">
+    <a href="{{ url_for('processos_bp.dashboard_processos') }}" class="btn btn-outline-gray">
+      <i class="fas fa-chart-pie"></i> Voltar ao Painel
+    </a>
+  </div>
+
 </section>
-
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-
 {% endblock %}

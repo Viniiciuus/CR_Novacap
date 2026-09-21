@@ -293,9 +293,18 @@ def consultar_processos():
         fim_dt = datetime.strptime(fim, "%Y-%m-%d")
         query = query.filter(EntradaProcesso.data_entrada_novacap <= fim_dt)
 
-    processos = query.order_by(Processo.id_processo.desc()).all()
+    # Paginação / Carregamento sob demanda (Otimização de Performance)
+    try:
+        limit = int(request.args.get('limit', 25))
+        if limit < 1:
+            limit = 25
+    except (ValueError, TypeError):
+        limit = 25
 
-    if not processos:
+    total_processos = query.count()
+    processos = query.order_by(Processo.id_processo.desc()).limit(limit).all()
+
+    if not processos and total_processos == 0:
         flash("Nenhum processo encontrado com os filtros aplicados.", "warning")
 
     for p in processos:
@@ -314,6 +323,8 @@ def consultar_processos():
     return render_template(
         "consultar_processos.html",
         processos=processos,
+        total_processos=total_processos,
+        limit=limit,
         todas_ras=todas_ras,
         todos_status=todos_status,
         demandas=demandas,

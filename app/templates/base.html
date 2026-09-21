@@ -7,238 +7,57 @@
 
   <!-- 🔗 Ícones e Estilos -->
   <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css?v=3.2') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css', v='5.0') }}">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-
-  <!-- 🎨 Estilo institucional aprimorado -->
-  <style>
-    /* =============================================
-       ⚙ BASE VISUAL - MODO CLARO
-    ============================================== */
-    body {
-      font-family: 'Segoe UI', 'Inter', 'Roboto', sans-serif;
-      background-color: #f7f9fb;
-      color: #333;
-      margin: 0;
-      padding: 0;
-      line-height: 1.6;
-    }
-
-    /* ==== CABEÇALHO ==== */
-    header.navbar {
-      background: linear-gradient(90deg, #002d62, #004a8f);
-      color: white;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0.8rem 2rem;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-      position: sticky;
-      top: 0;
-      z-index: 1000;
-    }
-
-    /* Logo + título */
-    .navbar a.logo-link {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      text-decoration: none;
-      color: white;
-      transition: 0.3s ease;
-    }
-
-    .navbar a.logo-link:hover h1 {
-      color: #ffc107;
-      text-shadow: 0 0 8px rgba(255, 193, 7, 0.6);
-    }
-
-    .navbar img.logo-gdf {
-      height: 58px;
-      width: auto;
-      transition: transform 0.25s ease, filter 0.25s ease;
-    }
-
-    .navbar h1 {
-      font-size: 1.3rem;
-      font-weight: 600;
-      margin: 0;
-    }
-
-    /* ==== MENU DE NAVEGAÇÃO ==== */
-    nav {
-      display: flex;
-      align-items: center;
-      gap: 1.5rem;
-    }
-
-    nav a {
-      color: white;
-      text-decoration: none;
-      font-weight: 500;
-      display: flex;
-      align-items: center;
-      gap: 0.4rem;
-      transition: .25s ease;
-    }
-
-    nav a:hover {
-      color: #ffc107;
-      transform: translateY(-2px);
-    }
-
-    /* ==== CONTEÚDO PRINCIPAL ==== */
-    main.container {
-      max-width: 1200px;
-      margin: 2rem auto;
-      padding: 1.5rem 2rem;
-      background-color: #fff;
-      border-radius: 10px;
-      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
-    }
-
-    /* ==== ALERTAS ==== */
-    .alert {
-      padding: 0.9rem 1.2rem;
-      border-radius: 6px;
-      margin-bottom: 1rem;
-      font-weight: 500;
-    }
-
-    .alert-success { background-color: #d4edda; color: #155724; }
-    .alert-warning { background-color: #fff3cd; color: #856404; }
-    .alert-danger,
-    .alert-error { background-color: #f8d7da; color: #721c24; }
-
-    /* ==== RODAPÉ ==== */
-    footer {
-      background: linear-gradient(90deg, #002d62, #004a8f);
-      color: white;
-      text-align: center;
-      padding: 1.5rem 0;
-      font-size: 0.9rem;
-      margin-top: 3rem;
-      box-shadow: 0 -3px 8px rgba(0, 0, 0, 0.1);
-    }
-
-    footer p {
-      margin: 0.3rem 0;
-    }
-
-    /* ==== BOTÃO DARK MODE ==== */
-    #toggle-theme {
-      position: fixed;
-      bottom: 1.4rem;
-      right: 1.4rem;
-      width: 48px;
-      height: 48px;
-      border-radius: 50%;
-      background-color: #fff;
-      border: 2px solid #adb5bd;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 3px 6px rgba(0,0,0,0.15);
-      cursor: pointer;
-      z-index: 999;
-      transition: .2s ease;
-    }
-
-    #toggle-theme:hover {
-      transform: scale(1.1);
-      background-color: #f8f9fa;
-    }
-
-    /* ==== RESPONSIVIDADE ==== */
-    @media (max-width: 768px) {
-      header.navbar {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 0.8rem;
-      }
-      nav {
-        flex-wrap: wrap;
-      }
-      main.container {
-        padding: 1rem;
-      }
-    }
-
-    /* =============================================
-       🌙 MODO ESCURO
-    ============================================== */
-    body.dark-mode {
-      background-color: #1c1f26;
-      color: #e9ecef;
-    }
-
-    body.dark-mode header.navbar {
-      background: linear-gradient(90deg, #001d3d, #003566);
-    }
-
-    body.dark-mode nav a {
-      color: #f1f3f5;
-    }
-
-    body.dark-mode nav a:hover {
-      color: #ffc107;
-    }
-
-    body.dark-mode main.container {
-      background-color: #2b2f38;
-      border: 1px solid #3a3f4b;
-    }
-
-    body.dark-mode footer {
-      background: linear-gradient(90deg, #001d3d, #002752);
-      border-top: 2px solid #ffc107;
-    }
-
-    body.dark-mode #toggle-theme {
-      background-color: #343a40;
-      border-color: #495057;
-      color: #ffc107;
-    }
-
-  </style>
 </head>
 
 <body>
 
   <!-- ========================= -->
-  <!-- 🟦 Cabeçalho Institucional -->
+  <!-- 🟦 Cabeçalho Institucional Moderno -->
   <!-- ========================= -->
   <header class="navbar">
 
-    <!-- Logo + título -->
-    <a href="{{ url_for('main_bp.index') }}" class="logo-link">
+    <!-- Logo + título institucional -->
+    <a href="{{ url_for('main_bp.index') }}" class="logo-link" title="Ir para a página inicial">
       <img src="{{ url_for('static', filename='images/ico-logo-gdf.svg') }}" alt="GDF" class="logo-gdf">
-      <h1>Central de Relacionamento – NOVACAP</h1>
+      <div class="navbar-brand-text">
+        <h1>Central de Relacionamento</h1>
+        <span class="brand-sub">Companhia Urbanizadora da Nova Capital — NOVACAP</span>
+      </div>
     </a>
 
-    <!-- Navegação principal -->
-    <nav>
-      <a href="{{ url_for('processos_bp.dashboard_processos') }}">
-        <i class="fas fa-chart-pie"></i> Painel
+    <!-- Navegação principal em abas / pills modernas -->
+    <nav class="navbar-nav">
+      <a href="{{ url_for('processos_bp.dashboard_processos') }}" 
+         class="nav-link {% if request.endpoint == 'processos_bp.dashboard_processos' %}active{% endif %}">
+        <i class="fas fa-chart-pie"></i>
+        <span>Painel</span>
       </a>
 
-      <a href="{{ url_for('processos_bp.consultar_processos') }}">
-        <i class="fas fa-folder-open"></i> Processos
+      <a href="{{ url_for('processos_bp.consultar_processos') }}" 
+         class="nav-link {% if request.endpoint in ['processos_bp.consultar_processos', 'processos_bp.cadastro_processo', 'processos_bp.alterar_processo'] %}active{% endif %}">
+        <i class="fas fa-folder-open"></i>
+        <span>Processos</span>
       </a>
 
-      <!-- 🔥 CORRIGIDO: agora envia para relatórios avançados -->
-      <a href="{{ url_for('relatorios_bp.relatorios_avancados') }}">
-        <i class="fas fa-file-alt"></i> Relatórios
+      <a href="{{ url_for('relatorios_bp.relatorios_avancados') }}" 
+         class="nav-link {% if request.endpoint in ['relatorios_bp.relatorios_avancados', 'relatorios_bp.relatorios_bi'] %}active{% endif %}">
+        <i class="fas fa-file-alt"></i>
+        <span>Relatórios</span>
       </a>
 
       {% if session.get('is_admin') %}
-        <a href="{{ url_for('admin_bp.painel_admin') }}">
-          <i class="fas fa-user-cog"></i> Administração
+        <a href="{{ url_for('admin_bp.painel_admin') }}" 
+           class="nav-link {% if request.endpoint == 'admin_bp.painel_admin' %}active{% endif %}">
+          <i class="fas fa-user-cog"></i>
+          <span>Administração</span>
         </a>
       {% endif %}
 
-      <a href="{{ url_for('main_bp.logout') }}">
-        <i class="fas fa-sign-out-alt"></i> Sair
+      <a href="{{ url_for('main_bp.logout') }}" class="nav-link nav-link-logout" title="Sair do sistema">
+        <i class="fas fa-sign-out-alt"></i>
+        <span>Sair</span>
       </a>
     </nav>
 
@@ -251,7 +70,10 @@
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
         {% for category, message in messages %}
-          <div class="alert alert-{{ category }}">{{ message }}</div>
+          <div class="alert alert-{{ category }}">
+            <i class="fas {% if category == 'success' %}fa-check-circle{% elif category == 'warning' %}fa-exclamation-triangle{% elif category in ['danger', 'error'] %}fa-times-circle{% else %}fa-info-circle{% endif %}"></i>
+            <span>{{ message }}</span>
+          </div>
         {% endfor %}
       {% endif %}
     {% endwith %}
@@ -269,8 +91,8 @@
 
   {% block scripts %}{% endblock %}
 
-  <!-- 🌙 Botão de alternância -->
-  <button id="toggle-theme" title="Alternar tema">
+  <!-- 🌙 Botão de alternância Dark Mode -->
+  <button id="toggle-theme" title="Alternar tema claro / escuro">
     <i class="fas fa-moon"></i>
   </button>
 

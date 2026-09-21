@@ -2,52 +2,40 @@
 {% block title %}Alterar Processo – Central de Relacionamento NOVACAP{% endblock %}
 
 {% block content %}
-<section class="page-section fade-in" style="max-width: 880px; margin: 2rem auto;">
+<section class="page-section fade-in" style="max-width: 880px;">
 
   <!-- Cabeçalho -->
-  <header class="text-center" style="margin-bottom: 2rem;">
-    <h1 style="color:#004a8f; font-size:clamp(1.8rem,3vw,2.3rem); font-weight:700;">
-      <i class="fas fa-edit"></i> Alterar Processo
-    </h1>
-    <p style="color:#555; font-size:1.05rem; max-width:720px; margin:0.6rem auto; line-height:1.6;">
-      Atualize o status, responsável técnico e observações referentes à movimentação deste processo.
+  <header class="page-header">
+    <h1><i class="fas fa-edit"></i> Alterar Processo</h1>
+    <p>
+      Atualize o status, responsável técnico e registre observações referentes à movimentação deste processo.
     </p>
   </header>
-
-  <!-- Mensagens de feedback -->
-  {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-      {% for category, message in messages %}
-        <div class="alert alert-{{ category }}" style="text-align:center; margin-bottom:1rem;">
-          {{ message }}
-        </div>
-      {% endfor %}
-    {% endif %}
-  {% endwith %}
 
   <!-- Formulário principal -->
   <form method="POST" action="{{ url_for('processos_bp.alterar_processo', id_processo=processo.id_processo) }}" class="card-form">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
-    <!-- Número do Processo -->
-    <div class="form-group">
-      <label for="numero_processo"><i class="fas fa-hashtag"></i> Número do Processo</label>
-      <input type="text" id="numero_processo" name="numero_processo"
-             value="{{ processo.numero_processo }}" readonly>
-    </div>
+    <!-- Número do Processo e Status Atual -->
+    <div class="form-row">
+      <div class="form-col">
+        <label for="numero_processo"><i class="fas fa-hashtag"></i> Número do Processo SEI</label>
+        <input type="text" id="numero_processo" name="numero_processo"
+               value="{{ processo.numero_processo }}" readonly>
+      </div>
 
-    <!-- Status Atual -->
-    <div class="form-group">
-      <label for="status_atual"><i class="fas fa-info-circle"></i> Status Atual</label>
-      <input type="text" id="status_atual" name="status_atual"
-             value="{{ processo.status_atual or '---' }}" readonly>
+      <div class="form-col">
+        <label for="status_atual"><i class="fas fa-info-circle"></i> Status Atual</label>
+        <input type="text" id="status_atual" name="status_atual"
+               value="{{ processo.status_atual or '---' }}" readonly>
+      </div>
     </div>
 
     <!-- Novo Status -->
     <div class="form-group">
-      <label for="novo_status"><i class="fas fa-flag"></i> Novo Status</label>
+      <label for="novo_status"><i class="fas fa-flag"></i> Novo Status da Demanda</label>
       <select id="novo_status" name="novo_status" required>
-        <option value="">Selecione</option>
+        <option value="">Selecione o Novo Status</option>
         {% for s in status %}
           <option value="{{ s.descricao }}">{{ s.descricao }}</option>
         {% endfor %}
@@ -56,9 +44,9 @@
 
     <!-- Observação -->
     <div class="form-group">
-      <label for="observacao"><i class="fas fa-comment-dots"></i> Observação</label>
-      <textarea id="observacao" name="observacao" rows="4"
-                placeholder="Descreva brevemente a movimentação..." required></textarea>
+      <label for="observacao"><i class="fas fa-comment-dots"></i> Observação da Movimentação</label>
+      <textarea id="observacao" name="observacao" rows="3"
+                placeholder="Descreva detalhadamente a atualização ou despacho..." required></textarea>
     </div>
 
     <!-- Linha dupla -->
@@ -70,7 +58,7 @@
       <div class="form-col">
         <label for="responsavel_tecnico"><i class="fas fa-user-tie"></i> Responsável Técnico</label>
         <select id="responsavel_tecnico" name="responsavel_tecnico" required>
-          <option value="">Selecione</option>
+          <option value="">Selecione o Responsável</option>
           {% for u in usuarios %}
             <option value="{{ u.id_usuario }}">{{ u.nome }} ({{ u.usuario }})</option>
           {% endfor %}
@@ -78,167 +66,38 @@
       </div>
     </div>
 
-    <!-- Botões -->
-    <div class="button-toolbar"
-         style="display:flex; justify-content:center; flex-wrap:wrap; gap:1rem; margin-top:2rem;">
+    <!-- Botões de Ação -->
+    <div class="button-toolbar" style="justify-content: center; margin-top: 2.2rem;">
       <button type="submit" class="btn btn-primary" onclick="this.disabled=true;this.form.submit();">
-        <i class="fas fa-save"></i> Salvar Alteração
+        <i class="fas fa-save"></i>
+        <span>Salvar Alteração</span>
       </button>
 
-      <a href="{{ url_for('processos_bp.dashboard_processos') }}" class="btn btn-outline-gray">
-        <i class="fas fa-chart-bar"></i> Tela de Totais
+      <a href="{{ url_for('processos_bp.consultar_processos') }}" class="btn btn-outline-blue">
+        <i class="fas fa-search"></i>
+        <span>Consultar Processos</span>
       </a>
 
-      <a href="{{ url_for('main_bp.logout') }}" class="btn btn-danger">
-        <i class="fas fa-sign-out-alt"></i> Sair
+      <a href="{{ url_for('processos_bp.dashboard_processos') }}" class="btn btn-outline-gray">
+        <i class="fas fa-chart-pie"></i>
+        <span>Voltar ao Painel</span>
       </a>
     </div>
   </form>
 
-  <!-- Formulário de exclusão -->
-  <form method="POST"
-        action="{{ url_for('processos_bp.excluir_processo', id_processo=processo.id_processo) }}"
-        class="delete-form"
-        onsubmit="return confirm('Tem certeza que deseja excluir este processo? Esta ação não poderá ser desfeita.');">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <!-- Área de Ações Críticas (Exclusão) -->
+  <div style="margin-top: 1.5rem; text-align: center;">
+    <form method="POST"
+          action="{{ url_for('processos_bp.excluir_processo', id_processo=processo.id_processo) }}"
+          onsubmit="return confirm('Tem certeza de que deseja excluir este processo permanentemente? Esta ação não pode ser desfeita.');">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
-    <button type="submit" class="btn btn-danger btn-delete-process">
-      <i class="fas fa-trash-alt"></i> Excluir Processo
-    </button>
-  </form>
+      <button type="submit" class="btn btn-danger btn-sm" style="opacity: 0.85;">
+        <i class="fas fa-trash-alt"></i>
+        <span>Excluir Processo Permanentemente</span>
+      </button>
+    </form>
+  </div>
 
 </section>
-
-<!-- Fade automático de alertas -->
-<script>
-setTimeout(() => {
-  const alert = document.querySelector('.alert-success');
-  if (alert) {
-    alert.style.transition = "opacity 0.8s ease";
-    alert.style.opacity = "0";
-    setTimeout(() => alert.remove(), 800);
-  }
-}, 3000);
-</script>
-
-<!-- Estilos -->
-<style>
-  form.card-form {
-    background: white;
-    padding: 2rem 2.5rem;
-    border-radius: 12px;
-    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
-  }
-
-  .form-group, .form-row {
-    margin-bottom: 1.2rem;
-  }
-
-  .form-row {
-    display: flex;
-    gap: 1.2rem;
-    flex-wrap: wrap;
-  }
-
-  .form-col {
-    flex: 1;
-    min-width: 260px;
-  }
-
-  label {
-    display: block;
-    font-weight: 600;
-    color: #002d62;
-    margin-bottom: 0.4rem;
-  }
-
-  input, select, textarea {
-    width: 100%;
-    padding: 0.6rem 0.8rem;
-    border: 1px solid #cfd8dc;
-    border-radius: 8px;
-    font-size: 0.95rem;
-    outline: none;
-    transition: border-color 0.2s ease;
-  }
-
-  input:focus, select:focus, textarea:focus {
-    border-color: #005CA9;
-    box-shadow: 0 0 0 2px rgba(0,92,169,0.2);
-  }
-
-  input[readonly] {
-    background-color: #f5f6fa;
-    color: #555;
-  }
-
-  textarea {
-    resize: vertical;
-  }
-
-  /* Botões */
-  .btn {
-    padding: 0.9rem 1.8rem;
-    font-size: 1rem;
-    font-weight: 600;
-    border-radius: 8px;
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    transition: all 0.25s ease;
-    cursor: pointer;
-  }
-
-  .btn-primary {
-    background: linear-gradient(90deg, #004a8f, #007bff);
-    color: white;
-    border: none;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-  }
-
-  .btn-primary:hover {
-    background: linear-gradient(90deg, #003d7a, #0066e4);
-    transform: translateY(-2px);
-  }
-
-  .btn-outline-gray {
-    border: 2px solid #6c757d;
-    color: #6c757d;
-    background: transparent;
-  }
-
-  .btn-outline-gray:hover {
-    background: #6c757d;
-    color: white;
-  }
-
-  .btn-danger {
-    background-color: #dc3545;
-    color: white;
-    border: none;
-  }
-
-  .btn-danger:hover {
-    background-color: #c82333;
-  }
-
-  .delete-form {
-    display: flex;
-    justify-content: center;
-    margin-top: 1.5rem;
-  }
-
-  .btn-delete-process {
-    background-color: #b02a37;
-  }
-
-  .btn-delete-process:hover {
-    background-color: #842029;
-    transform: translateY(-2px);
-  }
-</style>
-
-<link rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 {% endblock %}

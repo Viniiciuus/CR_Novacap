@@ -2,19 +2,17 @@
 {% block title %}Consulta de Processos – Central de Relacionamento NOVACAP{% endblock %}
 
 {% block content %}
-<section class="page-section fade-in" style="max-width: 1200px; margin: 2rem auto;">
+<section class="page-section fade-in">
 
-  <!-- 🔹 Cabeçalho -->
-  <header class="text-center" style="margin-bottom: 2rem;">
-    <h1 style="color:#004a8f; font-size:clamp(1.8rem,3vw,2.3rem); font-weight:700;">
-      <i class="fas fa-search"></i> Consulta de Processos
-    </h1>
-    <p style="color:#555; font-size:1.05rem; max-width:800px; margin:0.6rem auto; line-height:1.6;">
-      Utilize os filtros abaixo para localizar, visualizar ou exportar processos SEI tramitando pela NOVACAP.
+  <!-- Cabeçalho -->
+  <header class="page-header">
+    <h1><i class="fas fa-search"></i> Consulta de Processos</h1>
+    <p>
+      Utilize os filtros abaixo para localizar, visualizar e exportar processos SEI sob responsabilidade da NOVACAP.
     </p>
   </header>
 
-  <!-- 🔍 FILTROS -->
+  <!-- Filtros -->
   <form method="GET" action="{{ url_for('processos_bp.consultar_processos') }}" class="card-form">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
@@ -29,7 +27,7 @@
       <div class="form-group">
         <label for="status"><i class="fas fa-flag"></i> Status</label>
         <select id="status" name="status">
-          <option value="">Todos</option>
+          <option value="">Todos os Status</option>
           {% for s in todos_status %}
             <option value="{{ s.descricao }}" {% if request.args.get('status') == s.descricao %}selected{% endif %}>{{ s.descricao }}</option>
           {% endfor %}
@@ -39,7 +37,7 @@
       <div class="form-group">
         <label for="diretoria"><i class="fas fa-building"></i> Diretoria de Destino</label>
         <select id="diretoria" name="diretoria">
-          <option value="">Todas</option>
+          <option value="">Todas as Diretorias</option>
           {% for d in diretorias %}
             <option value="{{ d }}" {% if request.args.get('diretoria') == d %}selected{% endif %}>{{ d }}</option>
           {% endfor %}
@@ -49,7 +47,7 @@
       <div class="form-group">
         <label for="ra"><i class="fas fa-map-marker-alt"></i> Região Administrativa</label>
         <select id="ra" name="ra">
-          <option value="">Todas</option>
+          <option value="">Todas as RAs</option>
           {% for r in todas_ras %}
             <option value="{{ r.descricao_ra }}" {% if request.args.get('ra') == r.descricao_ra %}selected{% endif %}>{{ r.descricao_ra }}</option>
           {% endfor %}
@@ -59,7 +57,7 @@
       <div class="form-group">
         <label for="tipo"><i class="fas fa-tag"></i> Tipo de Demanda</label>
         <select id="tipo" name="tipo">
-          <option value="">Todos</option>
+          <option value="">Todos os Tipos</option>
           {% for t in tipos %}
             <option value="{{ t.id_tipo }}" {% if request.args.get('tipo') == t.id_tipo|string %}selected{% endif %}>{{ t.descricao }}</option>
           {% endfor %}
@@ -69,7 +67,7 @@
       <div class="form-group">
         <label for="demanda"><i class="fas fa-list-ul"></i> Demanda</label>
         <select id="demanda" name="demanda">
-          <option value="">Todas</option>
+          <option value="">Todas as Demandas</option>
           {% for d in demandas %}
             <option value="{{ d.id_demanda }}" {% if request.args.get('demanda') == d.id_demanda|string %}selected{% endif %}>{{ d.descricao }}</option>
           {% endfor %}
@@ -88,21 +86,33 @@
     </div>
 
     <!-- Botões -->
-    <div class="button-toolbar" style="justify-content:center; margin-top:1.5rem; flex-wrap:wrap; gap:1rem;">
-      <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i> Consultar</button>
-      <a href="{{ url_for('processos_bp.consultar_processos') }}" class="btn btn-outline-gray"><i class="fas fa-eraser"></i> Limpar</a>
+    <div class="button-toolbar" style="justify-content: center; margin-top: 1.5rem;">
+      <button type="submit" class="btn btn-primary">
+        <i class="fas fa-search"></i>
+        <span>Consultar</span>
+      </button>
+      <a href="{{ url_for('processos_bp.consultar_processos') }}" class="btn btn-outline-gray">
+        <i class="fas fa-eraser"></i>
+        <span>Limpar Filtros</span>
+      </a>
     </div>
   </form>
 
-  <!-- 📊 RESULTADOS -->
+  <!-- Resultados -->
   {% if processos %}
   <div class="card-results">
     <div class="export-bar">
-      <span>Exportar resultados:</span>
-      <div style="display:flex;gap:0.5rem;">
-        <a href="{{ url_for('processos_bp.exportar_tramitacoes', formato='csv') }}" class="btn btn-outline-blue btn-sm"><i class="fas fa-file-csv"></i> CSV</a>
-        <a href="{{ url_for('processos_bp.exportar_tramitacoes', formato='xlsx') }}" class="btn btn-outline-blue btn-sm"><i class="fas fa-file-excel"></i> XLSX</a>
-        <a href="{{ url_for('processos_bp.exportar_tramitacoes', formato='pdf') }}" class="btn btn-outline-blue btn-sm"><i class="fas fa-file-pdf"></i> PDF</a>
+      <span><i class="fas fa-file-export"></i> Opções de Exportação:</span>
+      <div class="button-group">
+        <a href="{{ url_for('processos_bp.exportar_tramitacoes', formato='csv') }}" class="btn btn-outline-blue btn-sm">
+          <i class="fas fa-file-csv"></i> CSV
+        </a>
+        <a href="{{ url_for('processos_bp.exportar_tramitacoes', formato='xlsx') }}" class="btn btn-outline-blue btn-sm">
+          <i class="fas fa-file-excel"></i> XLSX
+        </a>
+        <a href="{{ url_for('processos_bp.exportar_tramitacoes', formato='pdf') }}" class="btn btn-outline-blue btn-sm">
+          <i class="fas fa-file-pdf"></i> PDF
+        </a>
       </div>
     </div>
 
@@ -116,7 +126,7 @@
             <th>Diretoria</th>
             <th>Status Atual</th>
             <th>Última Movimentação</th>
-            <th>Ações</th>
+            <th style="text-align: center;">Ações</th>
           </tr>
         </thead>
         <tbody>
@@ -128,18 +138,18 @@
             <td>{{ p.diretoria_destino or '---' }}</td>
             <td>
               {% if "Atendido" in p.status_atual %}
-                <span class="badge success">{{ p.status_atual }}</span>
+                <span class="badge success"><i class="fas fa-check"></i> {{ p.status_atual }}</span>
               {% elif "Devolvido" in p.status_atual %}
-                <span class="badge warning">{{ p.status_atual }}</span>
+                <span class="badge warning"><i class="fas fa-undo"></i> {{ p.status_atual }}</span>
               {% elif "Improcedente" in p.status_atual %}
-                <span class="badge danger">{{ p.status_atual }}</span>
+                <span class="badge danger"><i class="fas fa-times"></i> {{ p.status_atual }}</span>
               {% else %}
-                <span class="badge neutral">{{ p.status_atual or "---" }}</span>
+                <span class="badge neutral"><i class="fas fa-circle"></i> {{ p.status_atual or "---" }}</span>
               {% endif %}
             </td>
             <td>{{ p.ultima_data.strftime('%d/%m/%Y') if p.ultima_data else '---' }}</td>
-            <td>
-              <a href="{{ url_for('processos_bp.exportar_processo_pdf', id_processo=p.id_processo) }}" class="btn btn-outline-blue btn-sm" title="Gerar PDF">
+            <td style="text-align: center;">
+              <a href="{{ url_for('processos_bp.exportar_processo_pdf', id_processo=p.id_processo) }}" class="btn btn-outline-blue btn-sm" title="Gerar PDF do Processo">
                 <i class="fas fa-file-pdf"></i>
               </a>
             </td>
@@ -148,117 +158,47 @@
         </tbody>
       </table>
     </div>
+
+    <!-- Indicador e Botão Carregar Mais -->
+    <div class="load-more-container">
+      <div class="load-more-info">
+        Exibindo <strong>{{ processos|length }}</strong> de <strong>{{ total_processos }}</strong> processos encontrados
+      </div>
+
+      {% if total_processos > processos|length %}
+      {% set proximo_limite = limit + 25 %}
+      <a href="{{ url_for('processos_bp.consultar_processos', 
+                          numero_processo=request.args.get('numero_processo', ''),
+                          status=request.args.get('status', ''),
+                          diretoria=request.args.get('diretoria', ''),
+                          ra=request.args.get('ra', ''),
+                          tipo=request.args.get('tipo', ''),
+                          demanda=request.args.get('demanda', ''),
+                          inicio=request.args.get('inicio', ''),
+                          fim=request.args.get('fim', ''),
+                          limit=proximo_limite) }}" 
+         class="btn-load-more">
+        <i class="fas fa-plus-circle"></i>
+        <span>Carregar Mais Processos (+25)</span>
+      </a>
+      {% endif %}
+    </div>
   </div>
   {% else %}
-    <p style="margin-top:2rem;text-align:center;color:#777;">Nenhum processo encontrado com os filtros aplicados.</p>
+    <div class="card-form text-center" style="margin-top: 2rem; padding: 2.5rem 1rem;">
+      <p style="margin: 0; color: var(--texto-muted); font-size: 1rem;">
+        <i class="fas fa-folder-open" style="font-size: 1.8rem; display: block; margin-bottom: 0.6rem;"></i>
+        Nenhum processo encontrado com os filtros selecionados.
+      </p>
+    </div>
   {% endif %}
 
-  <!-- ⚙ Rodapé -->
-  <div class="button-toolbar" style="justify-content:center; margin-top:2.5rem;">
-    <a href="{{ url_for('processos_bp.dashboard_processos') }}" class="btn btn-outline-gray"><i class="fas fa-chart-bar"></i> Voltar ao Dashboard</a>
-    <a href="{{ url_for('main_bp.logout') }}" class="btn btn-danger"><i class="fas fa-sign-out-alt"></i> Sair</a>
+  <!-- Barra de Retorno -->
+  <div class="button-toolbar" style="justify-content: center; margin-top: 2.5rem;">
+    <a href="{{ url_for('processos_bp.dashboard_processos') }}" class="btn btn-outline-gray">
+      <i class="fas fa-chart-pie"></i> Voltar ao Painel
+    </a>
   </div>
 
 </section>
-
-<!-- Estilos -->
-<style>
-  form.card-form {
-    background:white;
-    padding:2rem 2.5rem;
-    border-radius:12px;
-    box-shadow:0 3px 10px rgba(0,0,0,0.1);
-  }
-
-  .form-grid {
-    display:grid;
-    grid-template-columns:repeat(auto-fit, minmax(250px,1fr));
-    gap:1rem 1.5rem;
-  }
-
-  .form-group label {
-    display:block;
-    font-weight:600;
-    color:#002d62;
-    margin-bottom:0.3rem;
-  }
-
-  input, select {
-    width:100%;
-    padding:0.6rem 0.8rem;
-    border:1px solid #cfd8dc;
-    border-radius:8px;
-    font-size:0.95rem;
-  }
-
-  input:focus, select:focus {
-    border-color:#005CA9;
-    box-shadow:0 0 0 2px rgba(0,92,169,0.2);
-  }
-
-  .button-toolbar { display:flex; align-items:center; gap:1rem; }
-
-  .btn {
-    padding:0.8rem 1.6rem;
-    font-weight:600;
-    border-radius:8px;
-    display:inline-flex;
-    align-items:center;
-    gap:0.4rem;
-    text-decoration:none;
-    transition:all 0.25s ease;
-  }
-
-  .btn-primary { background:linear-gradient(90deg,#004a8f,#007bff); color:white; border:none; }
-  .btn-primary:hover { background:linear-gradient(90deg,#003d7a,#0066e4); }
-
-  .btn-outline-gray { border:2px solid #6c757d; color:#6c757d; background:transparent; }
-  .btn-outline-gray:hover { background:#6c757d; color:white; }
-
-  .btn-outline-blue { border:2px solid #005CA9; color:#005CA9; background:transparent; }
-  .btn-outline-blue:hover { background:#005CA9; color:white; }
-
-  .btn-danger { background:#dc3545; color:white; border:none; }
-  .btn-danger:hover { background:#c82333; }
-
-  .card-results {
-    background:white;
-    padding:1.5rem 2rem;
-    border-radius:12px;
-    box-shadow:0 3px 10px rgba(0,0,0,0.1);
-    margin-top:2rem;
-  }
-
-  table.styled-table {
-    width:100%;
-    border-collapse:collapse;
-    margin-top:1rem;
-  }
-
-  table.styled-table th, table.styled-table td {
-    padding:0.75rem 1rem;
-    text-align:left;
-  }
-
-  table.styled-table th {
-    background:#004a8f;
-    color:white;
-    font-weight:600;
-  }
-
-  table.styled-table tr:nth-child(even) { background:#f8f9fa; }
-
-  .badge {
-    padding:0.3rem 0.6rem;
-    border-radius:6px;
-    font-size:0.85rem;
-    font-weight:600;
-  }
-  .badge.success { background:#d4edda; color:#155724; }
-  .badge.warning { background:#fff3cd; color:#856404; }
-  .badge.danger { background:#f8d7da; color:#721c24; }
-  .badge.neutral { background:#e2e3e5; color:#383d41; }
-</style>
-
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 {% endblock %}

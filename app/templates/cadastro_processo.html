@@ -2,28 +2,15 @@
 {% block title %}Cadastro de Processo – Central de Relacionamento NOVACAP{% endblock %}
 
 {% block content %}
-<section class="page-section fade-in" style="max-width: 1000px; margin: 2rem auto;">
+<section class="page-section fade-in" style="max-width: 980px;">
 
   <!-- Cabeçalho -->
-  <header class="text-center" style="margin-bottom: 2rem;">
-    <h1 style="color:#004a8f; font-size:clamp(1.8rem,3vw,2.4rem); font-weight:700;">
-      <i class="fas fa-folder-plus"></i> Cadastro de Processo
-    </h1>
-    <p style="color:#555; font-size:1.05rem; max-width:720px; margin:0.6rem auto; line-height:1.6;">
-      Preencha corretamente os campos abaixo para registrar um novo processo no sistema de tramitação da NOVACAP.
+  <header class="page-header">
+    <h1><i class="fas fa-folder-plus"></i> Cadastro de Processo</h1>
+    <p>
+      Preencha os campos abaixo para registrar um novo processo no sistema de tramitação da NOVACAP.
     </p>
   </header>
-
-  <!-- Mensagens de feedback -->
-  {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-      {% for category, message in messages %}
-        <div class="alert alert-{{ category }}" style="text-align:center; margin-bottom:1rem;">
-          {{ message }}
-        </div>
-      {% endfor %}
-    {% endif %}
-  {% endwith %}
 
   <!-- Formulário principal -->
   <form method="POST" action="{{ url_for('processos_bp.cadastro_processo') }}" class="card-form">
@@ -31,7 +18,7 @@
 
     <!-- Número do Processo -->
     <div class="form-group">
-      <label for="numero_processo"><i class="fas fa-hashtag"></i> Número do Processo</label>
+      <label for="numero_processo"><i class="fas fa-hashtag"></i> Número do Processo SEI</label>
       <input type="text" id="numero_processo" name="numero_processo"
              placeholder="00000-00000000/0000-00" required>
     </div>
@@ -43,9 +30,9 @@
         <input type="date" id="data_criacao_ra" name="data_criacao_ra" required>
       </div>
       <div class="form-col">
-        <label for="ra_origem"><i class="fas fa-map-marker-alt"></i> Região Administrativa</label>
+        <label for="ra_origem"><i class="fas fa-map-marker-alt"></i> Região Administrativa (RA)</label>
         <select id="ra_origem" name="ra_origem" required>
-          <option value="">Selecione</option>
+          <option value="">Selecione a Região</option>
           {% for r in regioes %}
             <option value="{{ r.descricao_ra }}">{{ r.descricao_ra }}</option>
           {% endfor %}
@@ -62,7 +49,7 @@
       <div class="form-col">
         <label for="id_demanda"><i class="fas fa-list-ul"></i> Demanda</label>
         <select id="id_demanda" name="id_demanda" required>
-          <option value="">Selecione</option>
+          <option value="">Selecione a Demanda</option>
           {% for demanda in demandas %}
             <option value="{{ demanda.id_demanda }}">{{ demanda.descricao }}</option>
           {% endfor %}
@@ -79,7 +66,7 @@
       <div class="form-col">
         <label for="usuario_responsavel"><i class="fas fa-user-tie"></i> Responsável Técnico</label>
         <select id="usuario_responsavel" name="usuario_responsavel" required>
-          <option value="">Selecione</option>
+          <option value="">Selecione o Responsável</option>
           {% for u in usuarios %}
             <option value="{{ u.id_usuario }}">{{ u.nome }} ({{ u.usuario }})</option>
           {% endfor %}
@@ -92,7 +79,7 @@
       <div class="form-col">
         <label for="status_inicial"><i class="fas fa-flag"></i> Status Inicial</label>
         <select id="status_inicial" name="status_inicial" required>
-          <option value="">Selecione</option>
+          <option value="">Selecione o Status</option>
           {% for s in status %}
             <option value="{{ s.descricao }}">{{ s.descricao }}</option>
           {% endfor %}
@@ -101,7 +88,7 @@
       <div class="form-col">
         <label for="diretoria_destino"><i class="fas fa-building"></i> Diretoria de Destino</label>
         <select id="diretoria_destino" name="diretoria_destino" required>
-          <option value="">Selecione</option>
+          <option value="">Selecione a Diretoria</option>
           {% for d in diretorias %}
             <option value="{{ d }}">{{ d }}</option>
           {% endfor %}
@@ -113,32 +100,30 @@
     <div class="form-group">
       <label for="observacoes"><i class="fas fa-comment-dots"></i> Observações</label>
       <textarea id="observacoes" name="observacoes" rows="3"
-                placeholder="Observações relevantes (opcional)..."></textarea>
+                placeholder="Observações complementares (opcional)..."></textarea>
     </div>
 
-    <!-- Botões -->
-    <div class="button-toolbar"
-         style="display:flex; justify-content:center; flex-wrap:wrap; gap:1rem; margin-top:2rem;">
+    <!-- Botões de Ação -->
+    <div class="button-toolbar" style="justify-content: center; margin-top: 2rem;">
       <button type="submit" class="btn btn-primary" onclick="this.disabled=true;this.form.submit();">
-        <i class="fas fa-save"></i> Salvar Processo
+        <i class="fas fa-save"></i>
+        <span>Salvar Processo</span>
       </button>
 
       <a href="{{ url_for('processos_bp.consultar_processos') }}" class="btn btn-outline-blue">
-        <i class="fas fa-search"></i> Consultar Processos
+        <i class="fas fa-search"></i>
+        <span>Consultar Processos</span>
       </a>
 
       <a href="{{ url_for('processos_bp.dashboard_processos') }}" class="btn btn-outline-gray">
-        <i class="fas fa-chart-bar"></i> Tela de Totais
-      </a>
-
-      <a href="{{ url_for('main_bp.logout') }}" class="btn btn-danger">
-        <i class="fas fa-sign-out-alt"></i> Sair
+        <i class="fas fa-chart-pie"></i>
+        <span>Voltar ao Painel</span>
       </a>
     </div>
   </form>
 </section>
 
-<!-- Script: Verificação AJAX -->
+<!-- Script de Verificação AJAX de Duplicidade -->
 <script>
 document.getElementById('numero_processo').addEventListener('blur', function () {
   let numero = this.value.trim().replace(/\D/g, '');
@@ -153,129 +138,12 @@ document.getElementById('numero_processo').addEventListener('blur', function () 
   .then(response => response.json())
   .then(data => {
     if (data.existe) {
-      if (confirm("⚠ Este processo já está cadastrado. Deseja alterá-lo?")) {
+      if (confirm("⚠ Este processo já está cadastrado. Deseja visualizá-lo ou alterá-lo?")) {
         window.location.href = `/processos/alterar/${data.id}`;
       } else { this.value = ""; }
     }
   })
   .catch(error => console.error('Erro na verificação do processo:', error));
 });
-
-// 🔹 Fade automático da mensagem de sucesso
-setTimeout(() => {
-  const successMsg = document.querySelector('.alert-success');
-  if (successMsg) {
-    successMsg.style.transition = "opacity 0.8s ease";
-    successMsg.style.opacity = "0";
-    setTimeout(() => successMsg.remove(), 800);
-  }
-}, 3000);
 </script>
-
-<!-- Estilos internos -->
-<style>
-  form.card-form {
-    background: white;
-    padding: 2rem 2.5rem;
-    border-radius: 12px;
-    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
-  }
-
-  .form-group, .form-row {
-    margin-bottom: 1.2rem;
-  }
-
-  .form-row {
-    display: flex;
-    gap: 1.2rem;
-    flex-wrap: wrap;
-  }
-
-  .form-col {
-    flex: 1;
-    min-width: 280px;
-  }
-
-  label {
-    display: block;
-    font-weight: 600;
-    color: #002d62;
-    margin-bottom: 0.4rem;
-  }
-
-  input, select, textarea {
-    width: 100%;
-    padding: 0.6rem 0.8rem;
-    border: 1px solid #cfd8dc;
-    border-radius: 8px;
-    font-size: 0.95rem;
-    outline: none;
-    transition: border-color 0.2s ease;
-  }
-
-  input:focus, select:focus, textarea:focus {
-    border-color: #005CA9;
-    box-shadow: 0 0 0 2px rgba(0,92,169,0.2);
-  }
-
-  textarea {
-    resize: vertical;
-  }
-
-  /* Botões */
-  .btn {
-    padding: 0.9rem 1.8rem;
-    font-size: 1rem;
-    font-weight: 600;
-    border-radius: 8px;
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    transition: all 0.25s ease;
-  }
-
-  .btn-primary {
-    background: linear-gradient(90deg, #004a8f, #007bff);
-    color: white;
-    border: none;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-  }
-  .btn-primary:hover {
-    background: linear-gradient(90deg, #003d7a, #0066e4);
-    transform: translateY(-2px);
-  }
-
-  .btn-outline-blue {
-    border: 2px solid #005CA9;
-    color: #005CA9;
-    background: transparent;
-  }
-  .btn-outline-blue:hover {
-    background: #005CA9;
-    color: white;
-  }
-
-  .btn-outline-gray {
-    border: 2px solid #6c757d;
-    color: #6c757d;
-    background: transparent;
-  }
-  .btn-outline-gray:hover {
-    background: #6c757d;
-    color: white;
-  }
-
-  .btn-danger {
-    background-color: #dc3545;
-    color: white;
-    border: none;
-  }
-  .btn-danger:hover {
-    background-color: #c82333;
-  }
-</style>
-
-<link rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 {% endblock %}
