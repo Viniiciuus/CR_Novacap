@@ -1,6 +1,6 @@
 # 🏗 Sistema da Central de Relacionamento – NOVACAP
 
-Este sistema foi desenvolvido para atender à Central de Relacionamento (CR) da Companhia Urbanizadora da Nova Capital (NOVACAP), com o objetivo de registrar, acompanhar, tramitar e exportar processos administrativos e protocolos de atendimento ao cidadão e às Regiões Administrativas do Distrito Federal.
+Este sistema foi desenvolvido para atender à Central de Relacionamento (CR) da Companhia Urbanizadora da Nova Capital (NOVACAP), com o objetivo de registrar, acompanhar, tramitar e exportar processos administrativos.
 
 ---
 
@@ -71,11 +71,9 @@ Acesse: http://127.0.0.1:5000/
 ## 🧭 Objetivos do sistema
 
 - Registrar e acompanhar processos administrativos da CR
-- Gerar protocolos de atendimento ao cidadão e às RAs
 - Facilitar tramitações internas com histórico e responsável técnico
 - Gerar relatórios estratégicos para gestão
 - Exportar dados em diferentes formatos
-- Integrar futuramente com WhatsApp, e-mail e outros canais
 
 ---
 
@@ -83,12 +81,6 @@ Acesse: http://127.0.0.1:5000/
 
 - 📁 Processos administrativos  
 Registro, tramitação e histórico de processos internos da CR
-
-- 📥 Protocolos de atendimento  
-Registro de atendimentos presenciais, telefônicos, e por canais digitais (e-mail, WhatsApp)
-
-- 📞 Agenda de contatos e ramais  
-Lista interna de telefones e ramais pesquisável (atalho CTRL+L), integrada ao sistema de protocolo
 
 - 📊 Dashboard e Painel Gerencial  
 Cards com indicadores por status, tipo de protocolo e área responsável
@@ -106,7 +98,6 @@ Exportação para CSV, Excel, PDF, DOCX e JSON (em desenvolvimento)
 - Dashboards estatísticos
 - Filtros e relatórios gerenciais e avançados
 - Exportação de dados (CSV, Excel)
-- Agenda de ramais pesquisável
 - Troca de senha com validação
 - Aprovação e bloqueio de usuários via painel admin
 
