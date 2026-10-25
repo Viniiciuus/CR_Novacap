@@ -145,6 +145,16 @@ def relatorios_avancados():
         print("QUERY RETORNOU 0 - VERIFIQUE JOINS E DADOS")
     print("==================================\n")
 
+    # Paginação / Carregamento fracionado da tabela (Otimização de Performance)
+    try:
+        limit = int(request.args.get('limit', 25))
+        if limit < 1:
+            limit = 25
+    except (ValueError, TypeError):
+        limit = 25
+
+    tabela_resultados = resultados[:limit]
+
     return render_template(
         "relatorios_avancados.html",
         todos_status=todos_status,
@@ -152,8 +162,9 @@ def relatorios_avancados():
         todas_demandas=todas_demandas,
         todas_diretorias=todas_diretorias,
         todos_departamentos=todos_departamentos,
-        resultados=resultados,
+        resultados=tabela_resultados,
         total_resultados=total_resultados,
+        limit=limit,
         total_ras=total_ras,
         total_demandas=total_demandas,
         demandas_mapeadas=demandas_mapeadas,

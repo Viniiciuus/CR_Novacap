@@ -4,46 +4,114 @@
 {% block content %}
 <section class="page-section fade-in">
 
-  <!-- Cabeçalho -->
-  <header class="page-header">
-    <h1><i class="fas fa-chart-pie"></i> Painel de Controle – Processos</h1>
-    <p>
-      Acompanhe em tempo real os principais indicadores da tramitação de processos, 
-      identificando volumes, origens e resultados das demandas sob responsabilidade da NOVACAP.
-    </p>
+  <!-- Cabeçalho com Atualização Dinâmica (US03) -->
+  <header class="page-header dashboard-header-flex">
+    <div>
+      <h1><i class="fas fa-chart-pie"></i> Painel de Controle – Processos</h1>
+      <p>
+        Acompanhe em tempo real os principais indicadores da tramitação de processos SEI sob responsabilidade da NOVACAP.
+      </p>
+    </div>
+
+    <!-- Indicador de atualização em tempo real -->
+    <div class="dashboard-live-indicator">
+      <div class="live-dot-container">
+        <span class="live-dot"></span>
+        <span class="live-text">Atualizado às <strong id="dash-time">{{ timestamp or 'Agora' }}</strong></span>
+      </div>
+      <button id="btn-refresh-dashboard" class="btn btn-outline-blue btn-sm" title="Atualizar dados em tempo real sem recarregar">
+        <i class="fas fa-sync-alt" id="refresh-icon"></i>
+        <span>Atualizar Dados</span>
+      </button>
+    </div>
   </header>
+
+  <!-- 🚀 Acesso Rápido às Funcionalidades Mais Utilizadas (US03) -->
+  <div class="quick-actions-section">
+    <h2 class="section-title" style="margin-top: 0.5rem; margin-bottom: 1rem;">
+      <i class="fas fa-bolt"></i> Acesso Rápido
+    </h2>
+    <div class="quick-actions-grid">
+      <a href="{{ url_for('processos_bp.cadastro_processo') }}" class="quick-action-card card-action-primary">
+        <div class="quick-action-icon"><i class="fas fa-plus-circle"></i></div>
+        <div class="quick-action-info">
+          <h3>Novo Processo</h3>
+          <span>Cadastrar nova tramitação SEI</span>
+        </div>
+        <i class="fas fa-arrow-right quick-action-arrow"></i>
+      </a>
+
+      <a href="{{ url_for('processos_bp.consultar_processos') }}" class="quick-action-card">
+        <div class="quick-action-icon"><i class="fas fa-search"></i></div>
+        <div class="quick-action-info">
+          <h3>Consultar Processos</h3>
+          <span>Filtrar e exportar planilha</span>
+        </div>
+        <i class="fas fa-arrow-right quick-action-arrow"></i>
+      </a>
+
+      <a href="{{ url_for('processos_bp.consultar_processos', status='Solicitação de urgência') }}" class="quick-action-card card-action-urgente">
+        <div class="quick-action-icon"><i class="fas fa-exclamation-circle"></i></div>
+        <div class="quick-action-info">
+          <h3>Processos Urgentes</h3>
+          <span><strong data-kpi="processos_urgentes">{{ processos_urgentes or 0 }}</strong> solicitações em aberto</span>
+        </div>
+        <i class="fas fa-arrow-right quick-action-arrow"></i>
+      </a>
+
+      <a href="{{ url_for('relatorios_bp.relatorios_avancados') }}" class="quick-action-card">
+        <div class="quick-action-icon"><i class="fas fa-chart-line"></i></div>
+        <div class="quick-action-info">
+          <h3>Relatórios Avançados</h3>
+          <span>Gráficos por RA e diretoria</span>
+        </div>
+        <i class="fas fa-arrow-right quick-action-arrow"></i>
+      </a>
+
+      {% if session.get('is_admin') %}
+      <a href="{{ url_for('admin_bp.painel_admin') }}" class="quick-action-card">
+        <div class="quick-action-icon"><i class="fas fa-user-shield"></i></div>
+        <div class="quick-action-info">
+          <h3>Administração</h3>
+          <span>Moderar usuários e perfis</span>
+        </div>
+        <i class="fas fa-arrow-right quick-action-arrow"></i>
+      </a>
+      {% endif %}
+    </div>
+  </div>
 
   <!-- Seção: Totais Gerais -->
   <h2 class="section-title"><i class="fas fa-database"></i> Totais Gerais</h2>
   <div class="dashboard-grid">
     <div class="card card-blue">
       <h3><i class="fas fa-folder-open"></i> Total de Processos</h3>
-      <p>{{ total_processos or 0 }}</p>
+      <p data-kpi="total_processos">{{ total_processos or 0 }}</p>
     </div>
     <div class="card card-info">
       <h3><i class="fas fa-tasks"></i> Em Atendimento</h3>
-      <p>{{ total_em_atendimento or 0 }}</p>
+      <p data-kpi="total_em_atendimento">{{ total_em_atendimento or 0 }}</p>
     </div>
   </div>
 
-  <!-- Seção: Tramitação -->
+  <!-- Seção: Tramitação por Diretoria -->
   <h2 class="section-title"><i class="fas fa-route"></i> Tramitação por Diretoria</h2>
   <div class="dashboard-grid">
     <div class="card card-dc">
       <h3><i class="fas fa-city"></i> Diretoria das Cidades</h3>
-      <p>{{ processos_dc or 0 }}</p>
+      <p data-kpi="processos_dc">{{ processos_dc or 0 }}</p>
     </div>
     <div class="card card-do">
       <h3><i class="fas fa-hard-hat"></i> Diretoria de Obras</h3>
-      <p>{{ processos_do or 0 }}</p>
+      <p data-kpi="processos_do">{{ processos_do or 0 }}</p>
     </div>
     <div class="card card-dp">
       <h3><i class="fas fa-drafting-compass"></i> Planejamento e Projetos</h3>
-      <p>{{ processos_dp or 0 }}</p>
+      <p data-kpi="processos_dp">{{ processos_dp or 0 }}</p>
     </div>
     <div class="card card-gray">
       <h3><i class="fas fa-share-square"></i> Via SGIA</h3>
-      <p>{{ processos_sgia or 0 }}</p>
+      <p data-kpi="processos_sgia">{{ processos_sgia or 0 }}</p>
     </div>
   </div>
 
@@ -52,55 +120,82 @@
   <div class="dashboard-grid">
     <div class="card card-success">
       <h3><i class="fas fa-check-circle"></i> Atendidos</h3>
-      <p>{{ processos_atendidos or 0 }}</p>
+      <p data-kpi="processos_atendidos">{{ processos_atendidos or 0 }}</p>
     </div>
     <div class="card card-warning">
       <h3><i class="fas fa-undo-alt"></i> Devolvidos à RA</h3>
-      <p>{{ devolvidos_ra or 0 }}</p>
+      <p data-kpi="devolvidos_ra">{{ devolvidos_ra or 0 }}</p>
     </div>
     <div class="card card-danger">
       <h3><i class="fas fa-times-circle"></i> Improcedentes</h3>
-      <p>{{ processos_improcedentes or 0 }}</p>
+      <p data-kpi="processos_improcedentes">{{ processos_improcedentes or 0 }}</p>
     </div>
   </div>
 
-  <!-- Seção: Especiais -->
+  <!-- Seção: Demandas Especiais -->
   <h2 class="section-title"><i class="fas fa-exclamation-triangle"></i> Demandas Especiais</h2>
   <div class="dashboard-grid">
     <div class="card card-urgencia">
       <h3><i class="fas fa-bolt"></i> Solicitação de Urgência</h3>
-      <p>{{ processos_urgentes or 0 }}</p>
+      <p data-kpi="processos_urgentes">{{ processos_urgentes or 0 }}</p>
     </div>
     <div class="card card-prazo">
       <h3><i class="fas fa-hourglass-half"></i> Solicitação de Prazo</h3>
-      <p>{{ processos_prazo_execucao or 0 }}</p>
+      <p data-kpi="processos_prazo_execucao">{{ processos_prazo_execucao or 0 }}</p>
     </div>
     <div class="card card-ouvidoria">
       <h3><i class="fas fa-headset"></i> Oriundos da Ouvidoria</h3>
-      <p>{{ processos_ouvidoria or 0 }}</p>
+      <p data-kpi="processos_ouvidoria">{{ processos_ouvidoria or 0 }}</p>
     </div>
   </div>
 
-  <!-- Botões de Ação Rápida -->
-  <div class="button-toolbar" style="justify-content: center; margin-top: 3rem;">
-    <a href="{{ url_for('processos_bp.cadastro_processo') }}" class="btn btn-primary">
-      <i class="fas fa-plus-circle"></i> Novo Processo
-    </a>
-
-    <a href="{{ url_for('processos_bp.consultar_processos') }}" class="btn btn-outline-blue">
-      <i class="fas fa-search"></i> Consultar Processos
-    </a>
-
-    <a href="{{ url_for('relatorios_bp.relatorios_avancados') }}" class="btn btn-outline-blue">
-      <i class="fas fa-chart-line"></i> Relatórios Avançados
-    </a>
-
-    {% if session.get('is_admin') %}
-    <a href="{{ url_for('admin_bp.painel_admin') }}" class="btn btn-warning">
-      <i class="fas fa-user-cog"></i> Painel Administrativo
-    </a>
-    {% endif %}
-  </div>
-
 </section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // ⚡ Atualização Dinâmica das Informações em Destaque (US03)
+  (function() {
+    const refreshBtn = document.getElementById('btn-refresh-dashboard');
+    const refreshIcon = document.getElementById('refresh-icon');
+    const timeDisplay = document.getElementById('dash-time');
+    if (!refreshBtn || !refreshIcon) return;
+
+    refreshBtn.addEventListener('click', async function() {
+      refreshIcon.classList.add('fa-spin');
+      refreshBtn.style.pointerEvents = 'none';
+
+      try {
+        const response = await fetch("{{ url_for('processos_bp.api_dashboard_stats') }}");
+        if (!response.ok) throw new Error('Falha ao atualizar dados');
+        const data = await response.json();
+
+        // Atualiza todos os elementos marcados com data-kpi
+        document.querySelectorAll('[data-kpi]').forEach(el => {
+          const key = el.getAttribute('data-kpi');
+          if (data[key] !== undefined) {
+            el.style.opacity = '0.3';
+            setTimeout(() => {
+              el.textContent = data[key];
+              el.style.transition = 'opacity 0.3s ease';
+              el.style.opacity = '1';
+            }, 150);
+          }
+        });
+
+        if (timeDisplay && data.timestamp) {
+          timeDisplay.textContent = data.timestamp;
+        }
+
+      } catch (err) {
+        console.error('Erro na atualização dinâmica:', err);
+      } finally {
+        setTimeout(() => {
+          refreshIcon.classList.remove('fa-spin');
+          refreshBtn.style.pointerEvents = 'auto';
+        }, 500);
+      }
+    });
+  })();
+</script>
 {% endblock %}

@@ -7,118 +7,191 @@
 
   <!-- Cabeçalho -->
   <header class="page-header">
-    <h1><i class="fas fa-user-cog"></i> Painel Administrativo</h1>
+    <h1><i class="fas fa-user-cog"></i> Gestão de Usuários e Permissões</h1>
     <p>
-      Gerencie usuários, permissões de acesso e modere cadastros no sistema institucional.
+      Painel consolidado para moderação de contas, concessão de perfis de acesso e auditoria de usuários.
     </p>
   </header>
 
-  <!-- Barra de Busca -->
-  <form method="GET" action="{{ url_for('admin_bp.painel_admin') }}" class="card-form" style="padding: 1.25rem 1.6rem; margin-bottom: 1.8rem;">
-    <div class="form-row" style="margin-bottom: 0; align-items: center;">
-      <div style="flex: 1; min-width: 280px;">
-        <div class="input-with-icon">
-          <i class="fas fa-search"></i>
-          <input type="text" name="q" placeholder="Buscar por nome, usuário ou e-mail..."
-                 value="{{ request.args.get('q', '') }}">
-        </div>
+  <!-- 📑 Abas de Navegação Consolidada por Status (US05) -->
+  <div class="admin-tabs">
+    <a href="{{ url_for('admin_bp.painel_admin', status='todos', perfil=perfil_filtro, q=request.args.get('q', '')) }}"
+       class="admin-tab-item {% if status_filtro == 'todos' %}active{% endif %}">
+      <i class="fas fa-users"></i>
+      <span>Todos</span>
+      <span class="tab-badge">{{ total_todos }}</span>
+    </a>
+
+    <a href="{{ url_for('admin_bp.painel_admin', status='ativos', perfil=perfil_filtro, q=request.args.get('q', '')) }}"
+       class="admin-tab-item {% if status_filtro == 'ativos' %}active{% endif %}">
+      <i class="fas fa-user-check"></i>
+      <span>Ativos</span>
+      <span class="tab-badge success">{{ total_ativos }}</span>
+    </a>
+
+    <a href="{{ url_for('admin_bp.painel_admin', status='pendentes', perfil=perfil_filtro, q=request.args.get('q', '')) }}"
+       class="admin-tab-item {% if status_filtro == 'pendentes' %}active{% endif %}">
+      <i class="fas fa-user-clock"></i>
+      <span>Pendentes</span>
+      <span class="tab-badge warning">{{ total_pendentes }}</span>
+    </a>
+
+    <a href="{{ url_for('admin_bp.painel_admin', status='bloqueados', perfil=perfil_filtro, q=request.args.get('q', '')) }}"
+       class="admin-tab-item {% if status_filtro == 'bloqueados' %}active{% endif %}">
+      <i class="fas fa-user-slash"></i>
+      <span>Bloqueados / Inativos</span>
+      <span class="tab-badge danger">{{ total_bloqueados }}</span>
+    </a>
+  </div>
+
+  <!-- 🔍 Barra de Filtros Rápidos (US05) -->
+  <form method="GET" action="{{ url_for('admin_bp.painel_admin') }}" class="card-form admin-filter-card">
+    <input type="hidden" name="status" value="{{ status_filtro }}">
+
+    <div class="admin-filters-grid">
+      <!-- Busca por Texto -->
+      <div class="input-with-icon" style="flex: 2; min-width: 260px;">
+        <i class="fas fa-search"></i>
+        <input type="text" name="q" placeholder="Buscar por nome, usuário ou e-mail..."
+               value="{{ request.args.get('q', '') }}">
       </div>
+
+      <!-- Filtro por Perfil Administrativo -->
+      <div style="flex: 1; min-width: 180px;">
+        <select name="perfil" onchange="this.form.submit()" class="admin-select-filter">
+          <option value="todos" {% if perfil_filtro == 'todos' %}selected{% endif %}>Todos os Perfis</option>
+          <option value="admin" {% if perfil_filtro == 'admin' %}selected{% endif %}>Administradores</option>
+          <option value="operador" {% if perfil_filtro == 'operador' %}selected{% endif %}>Operadores</option>
+        </select>
+      </div>
+
+      <!-- Botões de Ação -->
       <div class="button-group">
-        <button type="submit" class="btn btn-primary">
-          <i class="fas fa-search"></i> Pesquisar
+        <button type="submit" class="btn btn-primary btn-sm">
+          <i class="fas fa-filter"></i> Filtrar
         </button>
-        {% if request.args.get('q') %}
-        <a href="{{ url_for('admin_bp.painel_admin') }}" class="btn btn-outline-gray">
-          <i class="fas fa-undo"></i> Limpar
+        {% if request.args.get('q') or perfil_filtro != 'todos' or status_filtro != 'todos' %}
+        <a href="{{ url_for('admin_bp.painel_admin') }}" class="btn btn-outline-gray btn-sm" title="Limpar todos os filtros">
+          <i class="fas fa-eraser"></i> Limpar
         </a>
         {% endif %}
       </div>
     </div>
   </form>
 
-  <!-- Tabela de Usuários -->
+  <!-- 📋 Tabela de Usuários Consolidada -->
   {% if usuarios %}
-  <div class="card-results" style="margin-top: 0;">
+  <div class="card-results" style="margin-top: 1rem;">
     <div class="table-responsive">
       <table class="styled-table">
         <thead>
           <tr>
-            <th>Nome</th>
-            <th>Usuário</th>
-            <th>E-mail</th>
-            <th style="text-align: center;">Aprovado?</th>
-            <th style="text-align: center;">Admin?</th>
-            <th style="text-align: center;">Bloqueado?</th>
-            <th style="text-align: center;">Ações</th>
+            <th style="min-width: 190px;">Nome do Colaborador</th>
+            <th style="min-width: 140px;">Usuário</th>
+            <th style="min-width: 220px;">E-mail Institucional</th>
+            <th style="min-width: 130px; text-align: center;">Perfil</th>
+            <th style="min-width: 130px; text-align: center;">Situação</th>
+            <th style="min-width: 230px; text-align: center;">Ações e Moderação</th>
           </tr>
         </thead>
 
         <tbody>
           {% for u in usuarios %}
           <tr>
-            <td><strong>{{ u.nome }}</strong></td>
-            <td>{{ u.usuario }}</td>
-            <td>{{ u.email }}</td>
-
-            <td style="text-align: center;">
-              {% if u.aprovado %}
-                <span class="badge success"><i class="fas fa-check"></i> Sim</span>
-              {% else %}
-                <span class="badge danger"><i class="fas fa-times"></i> Não</span>
-              {% endif %}
+            <td>
+              <div style="display: flex; align-items: center; gap: 0.6rem;">
+                <div class="user-avatar-circle">
+                  {{ u.nome[0]|upper if u.nome else 'U' }}
+                </div>
+                <div>
+                  <strong>{{ u.nome }}</strong>
+                  {% if u.id_usuario == current_user.id_usuario %}
+                    <span class="badge neutral" style="font-size: 0.72rem; margin-left: 0.3rem;">Você</span>
+                  {% endif %}
+                </div>
+              </div>
             </td>
+            <td><code>{{ u.usuario }}</code></td>
+            <td><a href="mailto:{{ u.email }}" style="color: var(--azul-novacap); text-decoration: none;">{{ u.email }}</a></td>
 
+            <!-- Perfil (Admin / Operador) com toggle simples (US05) -->
             <td style="text-align: center;">
               {% if u.is_admin %}
-                <span class="badge info"><i class="fas fa-user-shield"></i> Sim</span>
+                <span class="badge info"><i class="fas fa-user-shield"></i> Administrador</span>
               {% else %}
-                <span class="badge neutral"><i class="fas fa-user"></i> Não</span>
+                <span class="badge neutral"><i class="fas fa-user"></i> Operador</span>
               {% endif %}
             </td>
 
+            <!-- Situação (Ativo / Pendente / Bloqueado) -->
             <td style="text-align: center;">
-              {% if u.bloqueado %}
-                <span class="badge danger"><i class="fas fa-lock"></i> Sim</span>
+              {% if not u.aprovado %}
+                <span class="badge warning"><i class="fas fa-clock"></i> Pendente</span>
+              {% elif u.bloqueado %}
+                <span class="badge danger"><i class="fas fa-lock"></i> Inativo / Bloqueado</span>
               {% else %}
-                <span class="badge success"><i class="fas fa-unlock"></i> Não</span>
+                <span class="badge success"><i class="fas fa-check-circle"></i> Ativo</span>
               {% endif %}
             </td>
 
+            <!-- Ações Rápidas com Confirmação e Auditoria (US05 e US06) -->
             <td style="text-align: center;">
-              <div class="button-group" style="gap: 0.4rem; justify-content: center;">
+              <div class="button-group" style="gap: 0.35rem; justify-content: center; flex-wrap: wrap;">
 
+                <!-- 1. Aprovar Cadastro -->
                 {% if not u.aprovado %}
                 <form method="POST" action="{{ url_for('admin_bp.aprovar_usuario', id_usuario=u.id_usuario) }}" style="display:inline;">
                   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                  <button type="submit" class="btn btn-success btn-sm" title="Aprovar usuário">
+                  <button type="submit" class="btn btn-success btn-sm" title="Aprovar acesso do usuário">
                     <i class="fas fa-user-check"></i> Aprovar
                   </button>
                 </form>
                 {% endif %}
 
-                {% if not u.is_admin %}
-                <form method="POST" action="{{ url_for('admin_bp.atribuir_admin', id_usuario=u.id_usuario) }}" style="display:inline;">
-                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                  <button type="submit" class="btn btn-warning btn-sm" title="Promover para Administrador">
-                    <i class="fas fa-user-shield"></i> Admin
-                  </button>
-                </form>
+                <!-- 2. Alternância de Perfil (Conceder ou Revogar Admin) (US05) -->
+                {% if u.id_usuario != current_user.id_usuario %}
+                  {% if not u.is_admin %}
+                  <form method="POST" action="{{ url_for('admin_bp.atribuir_admin', id_usuario=u.id_usuario) }}" style="display:inline;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-outline-blue btn-sm" title="Conceder perfil de Administrador">
+                      <i class="fas fa-user-shield"></i> Tornar Admin
+                    </button>
+                  </form>
+                  {% else %}
+                  <form method="POST" action="{{ url_for('admin_bp.remover_admin', id_usuario=u.id_usuario) }}" style="display:inline;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-outline-gray btn-sm" title="Revogar perfil de Administrador">
+                      <i class="fas fa-user-minus"></i> Remover Admin
+                    </button>
+                  </form>
+                  {% endif %}
                 {% endif %}
 
-                {% if not u.bloqueado %}
-                <form method="POST" action="{{ url_for('admin_bp.bloquear_usuario', id_usuario=u.id_usuario) }}" style="display:inline;">
-                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                  <button type="submit" class="btn btn-danger btn-sm" title="Bloquear acesso">
-                    <i class="fas fa-user-slash"></i> Bloquear
-                  </button>
-                </form>
-                {% else %}
-                <form method="POST" action="{{ url_for('admin_bp.desbloquear_usuario', id_usuario=u.id_usuario) }}" style="display:inline;">
-                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                  <button type="submit" class="btn btn-outline-blue btn-sm" title="Desbloquear acesso">
-                    <i class="fas fa-unlock"></i> Desbloquear
-                  </button>
-                </form>
+                <!-- 3. Bloquear / Desbloquear (Inativação) (US06) -->
+                {% if u.id_usuario != current_user.id_usuario %}
+                  {% if not u.bloqueado %}
+                  <form method="POST" action="{{ url_for('admin_bp.bloquear_usuario', id_usuario=u.id_usuario) }}" class="form-confirm" data-message="Deseja inativar/bloquear o acesso do usuário '{{ u.usuario }}'?" style="display:inline;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="button" class="btn btn-warning btn-sm btn-action-confirm" title="Bloquear / Inativar usuário">
+                      <i class="fas fa-user-slash"></i> Inativar
+                    </button>
+                  </form>
+                  {% else %}
+                  <form method="POST" action="{{ url_for('admin_bp.desbloquear_usuario', id_usuario=u.id_usuario) }}" style="display:inline;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-outline-blue btn-sm" title="Reativar acesso do usuário">
+                      <i class="fas fa-unlock"></i> Reativar
+                    </button>
+                  </form>
+                  {% endif %}
+
+                  <!-- 4. Excluir Conta com Checagem de Dependências e Confirmação Explícita (US06) -->
+                  <form method="POST" action="{{ url_for('admin_bp.excluir_usuario', id_usuario=u.id_usuario) }}" class="form-confirm" data-message="ATENÇÃO: Deseja realmente excluir permanentemente a conta de '{{ u.usuario }}'? Se o usuário possuir processos ou movimentações vinculadas, o sistema impedirá a exclusão para preservar o histórico." style="display:inline;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="button" class="btn btn-danger btn-sm btn-action-confirm" title="Excluir conta (sujeito à verificação de processos vinculados)">
+                      <i class="fas fa-trash-alt"></i> Excluir
+                    </button>
+                  </form>
                 {% endif %}
 
               </div>
@@ -132,10 +205,10 @@
   </div>
 
   {% else %}
-  <div class="card-form text-center" style="padding: 2.5rem 1rem;">
+  <div class="card-form text-center" style="padding: 2.5rem 1rem; margin-top: 1rem;">
     <p style="margin: 0; color: var(--texto-muted); font-size: 1rem;">
-      <i class="fas fa-users-slash" style="font-size: 1.8rem; display: block; margin-bottom: 0.6rem;"></i>
-      Nenhum usuário encontrado.
+      <i class="fas fa-users-slash" style="font-size: 2rem; display: block; margin-bottom: 0.6rem;"></i>
+      Nenhum usuário localizado para os critérios selecionados.
     </p>
   </div>
   {% endif %}
@@ -148,4 +221,75 @@
   </div>
 
 </section>
+
+<!-- 🛡️ Modal Institucional de Confirmação Explícita (US06) -->
+<div class="modal-backdrop" id="modal-confirm-action" style="display: none;">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title">
+        <i class="fas fa-exclamation-triangle" style="color: var(--amarelo-alerta);"></i>
+        <span>Confirmação de Ação Administrativa</span>
+      </div>
+      <button type="button" class="modal-close-btn" id="modal-cancel-btn-x">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p id="modal-confirm-text">Deseja confirmar esta ação administrativa?</p>
+      <div class="modal-note">
+        <i class="fas fa-shield-alt"></i>
+        <span>Esta operação é monitorada e registrada nos relatórios de auditoria do sistema.</span>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-outline-gray btn-sm" id="modal-cancel-btn">Cancelar</button>
+      <button type="button" class="btn btn-danger btn-sm" id="modal-confirm-btn">Confirmar Operação</button>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // 🛡️ Gerenciador de Confirmação Explícita antes de Inativar/Excluir (US06)
+  (function() {
+    const modal = document.getElementById('modal-confirm-action');
+    const modalText = document.getElementById('modal-confirm-text');
+    const confirmBtn = document.getElementById('modal-confirm-btn');
+    const cancelBtn = document.getElementById('modal-cancel-btn');
+    const cancelBtnX = document.getElementById('modal-cancel-btn-x');
+
+    let currentFormToSubmit = null;
+
+    document.querySelectorAll('.btn-action-confirm').forEach(btn => {
+      btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        const form = this.closest('form');
+        const message = form.getAttribute('data-message') || 'Deseja confirmar a execução desta operação?';
+        currentFormToSubmit = form;
+        modalText.textContent = message;
+        modal.style.display = 'flex';
+      });
+    });
+
+    function fecharModal() {
+      modal.style.display = 'none';
+      currentFormToSubmit = null;
+    }
+
+    if (cancelBtn) cancelBtn.addEventListener('click', fecharModal);
+    if (cancelBtnX) cancelBtnX.addEventListener('click', fecharModal);
+
+    modal.addEventListener('click', function(e) {
+      if (e.target === modal) fecharModal();
+    });
+
+    if (confirmBtn) {
+      confirmBtn.addEventListener('click', function() {
+        if (currentFormToSubmit) {
+          currentFormToSubmit.submit();
+        }
+      });
+    }
+  })();
+</script>
 {% endblock %}

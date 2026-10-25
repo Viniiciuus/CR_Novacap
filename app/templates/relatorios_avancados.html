@@ -21,7 +21,7 @@
     <div class="intro-filtros">
       Os filtros podem ser usados isoladamente ou em conjunto, sem ordem obrigatória.
       Ao selecionar uma Diretoria, os Departamentos e Demandas são ajustados automaticamente
-      conforme a cadeia funcional (Diretoria → Departamento → Demanda.
+      conforme a cadeia funcional (Diretoria → Departamento → Demanda).
     </div>
 
     <div class="form-grid">
@@ -111,42 +111,44 @@
     </div>
 
     <!-- Botões -->
-    <div class="button-toolbar">
+    <div class="button-toolbar" style="margin-top: 1.5rem;">
       <button type="submit" class="btn btn-primary">
-        <i class="fas fa-filter"></i> Aplicar Filtros
+        <i class="fas fa-filter"></i>
+        <span>Aplicar Filtros</span>
       </button>
 
       <a href="{{ url_for('relatorios_bp.relatorios_avancados') }}"
          class="btn btn-outline-gray">
-        <i class="fas fa-eraser"></i> Limpar
+        <i class="fas fa-eraser"></i>
+        <span>Limpar Filtros</span>
       </a>
     </div>
 
   </form>
 
-  <!-- 📊 CARDS -->
+  <!-- 📊 CARDS DE INDICADORES -->
   <div class="card-grid">
 
     <div class="info-card">
-      <h3>Total de Registros Encontrados</h3>
+      <h3><i class="fas fa-database"></i> Total de Registros</h3>
       <div class="info-value">{{ total_resultados }}</div>
     </div>
 
     <div class="info-card">
-      <h3>Total de RAs Envolvidas</h3>
+      <h3><i class="fas fa-map-marker-alt"></i> RAs Envolvidas</h3>
       <div class="info-value">{{ total_ras }}</div>
     </div>
 
     <div class="info-card">
-      <h3>Demandas Distintas</h3>
+      <h3><i class="fas fa-list-check"></i> Demandas Distintas</h3>
       <div class="info-value">{{ total_demandas }}</div>
     </div>
 
   </div>
 
   <!-- 📈 GRÁFICOS -->
-  <h2 class="section-title-graficos">
-    <i class="fas fa-chart-bar"></i> Gráficos
+  <h2 class="section-title">
+    <i class="fas fa-chart-bar"></i> Análise Gráfica dos Dados
   </h2>
 
   <div class="graficos-grid">
@@ -355,56 +357,126 @@
     /* eslint-enable */
   </script>
 
-  <!-- 📄 TABELA -->
-  <h2 class="section-title-tabela">
-    <i class="fas fa-table"></i> Tabela de Resultados
-  </h2>
+  <!-- 📄 TABELA DE RESULTADOS (FORMATO PLANILHA MODERNA) -->
+  <div class="card-results" style="margin-top: 2.5rem;">
 
-  <div class="export-buttons">
-    <a href="{{ url_for('relatorios_bp.exportar_relatorios', formato='csv') }}"
-       class="btn btn-outline-blue">
-      <i class="fas fa-file-csv"></i> CSV
-    </a>
-    <a href="{{ url_for('relatorios_bp.exportar_relatorios', formato='xlsx') }}"
-       class="btn btn-outline-blue">
-      <i class="fas fa-file-excel"></i> XLSX
-    </a>
-  </div>
+    <div class="export-bar">
+      <span>
+        <i class="fas fa-table"></i> Visualização Detalhada dos Processos
+      </span>
 
-  <div class="table-area">
-    <table>
-      <thead>
-        <tr>
-          <th>Data</th>
-          <th>Nº Processo</th>
-          <th>RA</th>
-          <th>Status</th>
-          <th>Diretoria</th>
-          <th>Departamento</th>
-          <th>Serviço</th>
-          <th>Responsável</th>
-          <th>Observação</th>
-        </tr>
-      </thead>
+      <div class="button-group">
+        <span style="font-size: 0.88rem; color: var(--texto-secundario); margin-right: 0.5rem;">Exportar:</span>
+        <a href="{{ url_for('relatorios_bp.exportar_relatorios', 
+                            formato='csv',
+                            status=request.args.get('status', ''),
+                            ra=request.args.get('ra', ''),
+                            diretoria=request.args.get('diretoria', ''),
+                            departamento=request.args.get('departamento', ''),
+                            servico=request.args.get('servico', ''),
+                            inicio=request.args.get('inicio', ''),
+                            fim=request.args.get('fim', '')) }}"
+           class="btn btn-outline-blue btn-sm">
+          <i class="fas fa-file-csv"></i> CSV
+        </a>
+        <a href="{{ url_for('relatorios_bp.exportar_relatorios', 
+                            formato='xlsx',
+                            status=request.args.get('status', ''),
+                            ra=request.args.get('ra', ''),
+                            diretoria=request.args.get('diretoria', ''),
+                            departamento=request.args.get('departamento', ''),
+                            servico=request.args.get('servico', ''),
+                            inicio=request.args.get('inicio', ''),
+                            fim=request.args.get('fim', '')) }}"
+           class="btn btn-outline-blue btn-sm">
+          <i class="fas fa-file-excel"></i> XLSX
+        </a>
+      </div>
+    </div>
 
-      <tbody>
-        {% for mov, user, entrada, processo, demanda, departamento, diretoria in resultados %}
-        <tr>
-          <td>{{ mov.data.strftime("%d/%m/%Y %H:%M") }}</td>
-          <td>{{ processo.numero_processo }}</td>
-          <td>{{ entrada.ra_origem }}</td>
-          <td>{{ mov.novo_status }}</td>
-          <td>{{ diretoria.descricao_exibicao }}</td>
-          <td>{{ departamento.nome }}</td>
-          <td>{{ demanda.descricao }}</td>
-          <td>{{ user.usuario }}</td>
-          <td>{{ mov.observacao }}</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+    {% if resultados %}
+    <div class="table-responsive">
+      <table class="styled-table">
+        <thead>
+          <tr>
+            <th style="min-width: 140px;">Data</th>
+            <th style="min-width: 190px;">Nº Processo</th>
+            <th style="min-width: 140px;">RA Origem</th>
+            <th style="min-width: 150px;">Status</th>
+            <th style="min-width: 180px;">Diretoria</th>
+            <th style="min-width: 180px;">Departamento</th>
+            <th style="min-width: 180px;">Demanda (Serviço)</th>
+            <th style="min-width: 130px;">Responsável</th>
+            <th style="min-width: 220px;">Observação</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for mov, user, entrada, processo, demanda, departamento, diretoria in resultados %}
+          <tr>
+            <td style="white-space: nowrap;">{{ mov.data.strftime("%d/%m/%Y %H:%M") if mov and mov.data else "—" }}</td>
+            <td style="white-space: nowrap;"><strong>{{ processo.numero_processo if processo else "—" }}</strong></td>
+            <td>{{ entrada.ra_origem if entrada else "—" }}</td>
+            <td>
+              {% if mov and mov.novo_status %}
+                {% if "Atendido" in mov.novo_status %}
+                  <span class="badge success"><i class="fas fa-check"></i> {{ mov.novo_status }}</span>
+                {% elif "Devolvido" in mov.novo_status %}
+                  <span class="badge warning"><i class="fas fa-undo"></i> {{ mov.novo_status }}</span>
+                {% elif "Improcedente" in mov.novo_status %}
+                  <span class="badge danger"><i class="fas fa-times"></i> {{ mov.novo_status }}</span>
+                {% else %}
+                  <span class="badge neutral"><i class="fas fa-circle"></i> {{ mov.novo_status }}</span>
+                {% endif %}
+              {% else %}
+                <span class="badge neutral">—</span>
+              {% endif %}
+            </td>
+            <td>{{ diretoria.descricao_exibicao if diretoria else "Não informado" }}</td>
+            <td>{{ departamento.nome if departamento else "Não informado" }}</td>
+            <td>{{ demanda.descricao if demanda else "—" }}</td>
+            <td>{{ user.usuario if user else "—" }}</td>
+            <td style="font-size: 0.88rem; color: var(--texto-secundario);">{{ mov.observacao if mov and mov.observacao else "—" }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Indicador e Botão Carregar Mais -->
+    <div class="load-more-container">
+      <div class="load-more-info">
+        Exibindo <strong>{{ resultados|length }}</strong> de <strong>{{ total_resultados }}</strong> registros encontrados
+      </div>
+
+      {% if total_resultados > resultados|length %}
+      {% set proximo_limite = limit + 25 %}
+      <a href="{{ url_for('relatorios_bp.relatorios_avancados', 
+                          status=request.args.get('status', ''),
+                          ra=request.args.get('ra', ''),
+                          diretoria=request.args.get('diretoria', ''),
+                          departamento=request.args.get('departamento', ''),
+                          servico=request.args.get('servico', ''),
+                          inicio=request.args.get('inicio', ''),
+                          fim=request.args.get('fim', ''),
+                          limit=proximo_limite) }}" 
+         class="btn-load-more">
+        <i class="fas fa-plus-circle"></i>
+        <span>Carregar Mais Processos (+25)</span>
+      </a>
+      {% endif %}
+    </div>
+
+    {% else %}
+    <div class="text-center" style="padding: 2.5rem 1rem;">
+      <p style="margin: 0; color: var(--texto-muted); font-size: 1rem;">
+        <i class="fas fa-folder-open" style="font-size: 1.8rem; display: block; margin-bottom: 0.6rem;"></i>
+        Nenhum processo encontrado com os filtros selecionados.
+      </p>
+    </div>
+    {% endif %}
+
   </div>
 
 </section>
 {% endblock %}
-

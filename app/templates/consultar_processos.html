@@ -15,6 +15,8 @@
   <!-- Filtros -->
   <form method="GET" action="{{ url_for('processos_bp.consultar_processos') }}" class="card-form">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="sort_by" value="{{ sort_by or 'id' }}">
+    <input type="hidden" name="order" value="{{ order or 'desc' }}">
 
     <div class="form-grid">
       <div class="form-group">
@@ -50,16 +52,6 @@
           <option value="">Todas as RAs</option>
           {% for r in todas_ras %}
             <option value="{{ r.descricao_ra }}" {% if request.args.get('ra') == r.descricao_ra %}selected{% endif %}>{{ r.descricao_ra }}</option>
-          {% endfor %}
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label for="tipo"><i class="fas fa-tag"></i> Tipo de Demanda</label>
-        <select id="tipo" name="tipo">
-          <option value="">Todos os Tipos</option>
-          {% for t in tipos %}
-            <option value="{{ t.id_tipo }}" {% if request.args.get('tipo') == t.id_tipo|string %}selected{% endif %}>{{ t.descricao }}</option>
           {% endfor %}
         </select>
       </div>
@@ -104,54 +96,202 @@
     <div class="export-bar">
       <span><i class="fas fa-file-export"></i> Opções de Exportação:</span>
       <div class="button-group">
-        <a href="{{ url_for('processos_bp.exportar_tramitacoes', formato='csv') }}" class="btn btn-outline-blue btn-sm">
+        <a href="{{ url_for('processos_bp.exportar_tramitacoes', formato='csv', 
+                            status=request.args.get('status', ''),
+                            ra=request.args.get('ra', ''),
+                            diretoria=request.args.get('diretoria', ''),
+                            demanda=request.args.get('demanda', ''),
+                            inicio=request.args.get('inicio', ''),
+                            fim=request.args.get('fim', '')) }}" class="btn btn-outline-blue btn-sm">
           <i class="fas fa-file-csv"></i> CSV
         </a>
-        <a href="{{ url_for('processos_bp.exportar_tramitacoes', formato='xlsx') }}" class="btn btn-outline-blue btn-sm">
+        <a href="{{ url_for('processos_bp.exportar_tramitacoes', formato='xlsx',
+                            status=request.args.get('status', ''),
+                            ra=request.args.get('ra', ''),
+                            diretoria=request.args.get('diretoria', ''),
+                            demanda=request.args.get('demanda', ''),
+                            inicio=request.args.get('inicio', ''),
+                            fim=request.args.get('fim', '')) }}" class="btn btn-outline-blue btn-sm">
           <i class="fas fa-file-excel"></i> XLSX
         </a>
-        <a href="{{ url_for('processos_bp.exportar_tramitacoes', formato='pdf') }}" class="btn btn-outline-blue btn-sm">
+        <a href="{{ url_for('processos_bp.exportar_tramitacoes', formato='pdf',
+                            status=request.args.get('status', ''),
+                            ra=request.args.get('ra', ''),
+                            diretoria=request.args.get('diretoria', ''),
+                            demanda=request.args.get('demanda', ''),
+                            inicio=request.args.get('inicio', ''),
+                            fim=request.args.get('fim', '')) }}" class="btn btn-outline-blue btn-sm">
           <i class="fas fa-file-pdf"></i> PDF
         </a>
       </div>
     </div>
 
+    <!-- Tabela com Ordenação nas Colunas (US04) -->
     <div class="table-responsive">
       <table class="styled-table">
         <thead>
           <tr>
-            <th>Nº Processo</th>
-            <th>RA Origem</th>
-            <th>Tipo</th>
-            <th>Diretoria</th>
-            <th>Status Atual</th>
-            <th>Última Movimentação</th>
-            <th style="text-align: center;">Ações</th>
+            <!-- Nº Processo -->
+            <th style="min-width: 190px;">
+              <a href="{{ url_for('processos_bp.consultar_processos', 
+                                  numero_processo=request.args.get('numero_processo', ''),
+                                  status=request.args.get('status', ''),
+                                  diretoria=request.args.get('diretoria', ''),
+                                  ra=request.args.get('ra', ''),
+                                  demanda=request.args.get('demanda', ''),
+                                  inicio=request.args.get('inicio', ''),
+                                  fim=request.args.get('fim', ''),
+                                  sort_by='numero',
+                                  order='desc' if sort_by == 'numero' and order == 'asc' else 'asc',
+                                  limit=limit) }}" 
+                 class="sortable-header {% if sort_by == 'numero' %}active{% endif %}"
+                 title="Clique para ordenar por Nº Processo">
+                <span>Nº Processo</span>
+                {% if sort_by == 'numero' %}
+                  <i class="fas fa-sort-{{ 'up' if order == 'asc' else 'down' }} sort-icon-active"></i>
+                {% else %}
+                  <i class="fas fa-sort sort-icon-muted"></i>
+                {% endif %}
+              </a>
+            </th>
+
+            <!-- RA Origem -->
+            <th style="min-width: 150px;">
+              <a href="{{ url_for('processos_bp.consultar_processos', 
+                                  numero_processo=request.args.get('numero_processo', ''),
+                                  status=request.args.get('status', ''),
+                                  diretoria=request.args.get('diretoria', ''),
+                                  ra=request.args.get('ra', ''),
+                                  demanda=request.args.get('demanda', ''),
+                                  inicio=request.args.get('inicio', ''),
+                                  fim=request.args.get('fim', ''),
+                                  sort_by='ra',
+                                  order='desc' if sort_by == 'ra' and order == 'asc' else 'asc',
+                                  limit=limit) }}" 
+                 class="sortable-header {% if sort_by == 'ra' %}active{% endif %}"
+                 title="Clique para ordenar por RA de Origem">
+                <span>RA Origem</span>
+                {% if sort_by == 'ra' %}
+                  <i class="fas fa-sort-{{ 'up' if order == 'asc' else 'down' }} sort-icon-active"></i>
+                {% else %}
+                  <i class="fas fa-sort sort-icon-muted"></i>
+                {% endif %}
+              </a>
+            </th>
+
+            <!-- Demanda -->
+            <th style="min-width: 160px;">Demanda</th>
+
+            <!-- Diretoria -->
+            <th style="min-width: 180px;">
+              <a href="{{ url_for('processos_bp.consultar_processos', 
+                                  numero_processo=request.args.get('numero_processo', ''),
+                                  status=request.args.get('status', ''),
+                                  diretoria=request.args.get('diretoria', ''),
+                                  ra=request.args.get('ra', ''),
+                                  demanda=request.args.get('demanda', ''),
+                                  inicio=request.args.get('inicio', ''),
+                                  fim=request.args.get('fim', ''),
+                                  sort_by='diretoria',
+                                  order='desc' if sort_by == 'diretoria' and order == 'asc' else 'asc',
+                                  limit=limit) }}" 
+                 class="sortable-header {% if sort_by == 'diretoria' %}active{% endif %}"
+                 title="Clique para ordenar por Diretoria">
+                <span>Diretoria</span>
+                {% if sort_by == 'diretoria' %}
+                  <i class="fas fa-sort-{{ 'up' if order == 'asc' else 'down' }} sort-icon-active"></i>
+                {% else %}
+                  <i class="fas fa-sort sort-icon-muted"></i>
+                {% endif %}
+              </a>
+            </th>
+
+            <!-- Status Atual -->
+            <th style="min-width: 170px;">
+              <a href="{{ url_for('processos_bp.consultar_processos', 
+                                  numero_processo=request.args.get('numero_processo', ''),
+                                  status=request.args.get('status', ''),
+                                  diretoria=request.args.get('diretoria', ''),
+                                  ra=request.args.get('ra', ''),
+                                  demanda=request.args.get('demanda', ''),
+                                  inicio=request.args.get('inicio', ''),
+                                  fim=request.args.get('fim', ''),
+                                  sort_by='status',
+                                  order='desc' if sort_by == 'status' and order == 'asc' else 'asc',
+                                  limit=limit) }}" 
+                 class="sortable-header {% if sort_by == 'status' %}active{% endif %}"
+                 title="Clique para ordenar por Status">
+                <span>Status Atual</span>
+                {% if sort_by == 'status' %}
+                  <i class="fas fa-sort-{{ 'up' if order == 'asc' else 'down' }} sort-icon-active"></i>
+                {% else %}
+                  <i class="fas fa-sort sort-icon-muted"></i>
+                {% endif %}
+              </a>
+            </th>
+
+            <!-- Última Movimentação / Data -->
+            <th style="min-width: 160px;">
+              <a href="{{ url_for('processos_bp.consultar_processos', 
+                                  numero_processo=request.args.get('numero_processo', ''),
+                                  status=request.args.get('status', ''),
+                                  diretoria=request.args.get('diretoria', ''),
+                                  ra=request.args.get('ra', ''),
+                                  demanda=request.args.get('demanda', ''),
+                                  inicio=request.args.get('inicio', ''),
+                                  fim=request.args.get('fim', ''),
+                                  sort_by='data',
+                                  order='desc' if sort_by == 'data' and order == 'asc' else 'asc',
+                                  limit=limit) }}" 
+                 class="sortable-header {% if sort_by == 'data' %}active{% endif %}"
+                 title="Clique para ordenar por Data de Entrada/Movimentação">
+                <span>Última Movimentação</span>
+                {% if sort_by == 'data' %}
+                  <i class="fas fa-sort-{{ 'up' if order == 'asc' else 'down' }} sort-icon-active"></i>
+                {% else %}
+                  <i class="fas fa-sort sort-icon-muted"></i>
+                {% endif %}
+              </a>
+            </th>
+
+            <!-- Ações -->
+            <th style="min-width: 110px; text-align: center;">Ações</th>
           </tr>
         </thead>
         <tbody>
           {% for p in processos %}
           <tr>
-            <td><strong>{{ p.numero_processo }}</strong></td>
+            <td style="white-space: nowrap;">
+              <a href="{{ url_for('processos_bp.alterar_processo', id_processo=p.id_processo) }}" style="color: inherit; text-decoration: none;" title="Abrir tramitação do processo">
+                <strong>{{ p.numero_processo }}</strong>
+              </a>
+            </td>
             <td>{{ p.entrada.ra_origem if p.entrada else '---' }}</td>
-            <td>{{ p.entrada.tipo.descricao if p.entrada and p.entrada.tipo else '---' }}</td>
+            <td>{{ p.entrada.demanda.descricao if p.entrada and p.entrada.demanda else '---' }}</td>
             <td>{{ p.diretoria_destino or '---' }}</td>
-            <td>
-              {% if "Atendido" in p.status_atual %}
+            <td style="white-space: nowrap;">
+              {% if "Atendido" in (p.status_atual or '') %}
                 <span class="badge success"><i class="fas fa-check"></i> {{ p.status_atual }}</span>
-              {% elif "Devolvido" in p.status_atual %}
+              {% elif "Devolvido" in (p.status_atual or '') %}
                 <span class="badge warning"><i class="fas fa-undo"></i> {{ p.status_atual }}</span>
-              {% elif "Improcedente" in p.status_atual %}
+              {% elif "Improcedente" in (p.status_atual or '') %}
                 <span class="badge danger"><i class="fas fa-times"></i> {{ p.status_atual }}</span>
+              {% elif "urgência" in (p.status_atual or '').lower() %}
+                <span class="badge danger"><i class="fas fa-bolt"></i> {{ p.status_atual }}</span>
               {% else %}
                 <span class="badge neutral"><i class="fas fa-circle"></i> {{ p.status_atual or "---" }}</span>
               {% endif %}
             </td>
-            <td>{{ p.ultima_data.strftime('%d/%m/%Y') if p.ultima_data else '---' }}</td>
+            <td style="white-space: nowrap;">{{ p.ultima_data.strftime('%d/%m/%Y') if p.ultima_data else '---' }}</td>
             <td style="text-align: center;">
-              <a href="{{ url_for('processos_bp.exportar_processo_pdf', id_processo=p.id_processo) }}" class="btn btn-outline-blue btn-sm" title="Gerar PDF do Processo">
-                <i class="fas fa-file-pdf"></i>
-              </a>
+              <div class="button-group" style="gap: 0.35rem; justify-content: center;">
+                <a href="{{ url_for('processos_bp.alterar_processo', id_processo=p.id_processo) }}" class="btn btn-outline-blue btn-sm" title="Editar / Movimentar Processo">
+                  <i class="fas fa-edit"></i>
+                </a>
+                <a href="{{ url_for('processos_bp.exportar_processo_pdf', id_processo=p.id_processo) }}" class="btn btn-outline-gray btn-sm" title="Gerar PDF Institucional">
+                  <i class="fas fa-file-pdf"></i>
+                </a>
+              </div>
             </td>
           </tr>
           {% endfor %}
@@ -159,7 +299,7 @@
       </table>
     </div>
 
-    <!-- Indicador e Botão Carregar Mais -->
+    <!-- Indicador e Botão Carregar Mais (Carregamento Assíncrono sem pulo de tela) -->
     <div class="load-more-container">
       <div class="load-more-info">
         Exibindo <strong>{{ processos|length }}</strong> de <strong>{{ total_processos }}</strong> processos encontrados
@@ -172,10 +312,11 @@
                           status=request.args.get('status', ''),
                           diretoria=request.args.get('diretoria', ''),
                           ra=request.args.get('ra', ''),
-                          tipo=request.args.get('tipo', ''),
                           demanda=request.args.get('demanda', ''),
                           inicio=request.args.get('inicio', ''),
                           fim=request.args.get('fim', ''),
+                          sort_by=sort_by,
+                          order=order,
                           limit=proximo_limite) }}" 
          class="btn-load-more">
         <i class="fas fa-plus-circle"></i>

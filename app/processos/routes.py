@@ -1,12 +1,8 @@
 # app/processos/routes.py
 """
 Rotas do módulo de Processos (Tramitação SEI) — CR-NOVACAP.
-Inclui: dashboard, cadastro, alteração, consulta unificada e exportações (CSV, XLSX, PDF).
-Atualizado em 2025-11-05:
- - Correção das métricas do Painel de Controle (dashboard_processos.html)
- - Inclusão de Diretoria de Suporte, Via SGIA e EXT
- - Adição de métricas de origem (SECRE / CR) e processos encerrados
- - Comentários e padronização de código
+Inclui: dashboard com atualização dinâmica, cadastro, alteração,
+consulta unificada com ordenação em tempo real e exportações (CSV, XLSX, PDF).
 """
 
 import os
@@ -35,13 +31,10 @@ from reportlab.lib.styles import getSampleStyleSheet
 
 
 # ==========================================================
-# 1️⃣ DASHBOARD DE PROCESSOS
+# 📊 CÁLCULO CONSOLIDADO DE MÉTRICAS (US03)
 # ==========================================================
-@processos_bp.route('/dashboard')
-@login_required
-def dashboard_processos():
-    """Painel de Controle — Processos SEI tramitando pela CR/NOVACAP"""
-
+def calcular_metricas_dashboard():
+    """Calcula e retorna as métricas consolidadas dos processos em tramitação"""
     # === Totais Gerais ===
     total_processos = Processo.query.count()
 
@@ -78,24 +71,42 @@ def dashboard_processos():
     # === Encerrados (resultado final) ===
     processos_encerrados = processos_atendidos + processos_improcedentes + devolvidos_ra
 
-    return render_template(
-        'dashboard_processos.html',
-        total_processos=total_processos,
-        total_em_atendimento=processos_em_atendimento,
-        processos_dc=processos_dc,
-        processos_do=processos_do,
-        processos_dp=processos_dp,
-        processos_ds=processos_ds,
-        processos_sgia=processos_sgia,
-        processos_ext=processos_ext,
-        processos_atendidos=processos_atendidos,
-        devolvidos_ra=devolvidos_ra,
-        processos_improcedentes=processos_improcedentes,
-        processos_encerrados=processos_encerrados,
-        processos_urgentes=processos_urgentes,
-        processos_prazo_execucao=processos_prazo_execucao,
-        processos_ouvidoria=processos_ouvidoria
-    )
+    return {
+        'total_processos': total_processos,
+        'total_em_atendimento': processos_em_atendimento,
+        'processos_dc': processos_dc,
+        'processos_do': processos_do,
+        'processos_dp': processos_dp,
+        'processos_ds': processos_ds,
+        'processos_sgia': processos_sgia,
+        'processos_ext': processos_ext,
+        'processos_atendidos': processos_atendidos,
+        'devolvidos_ra': devolvidos_ra,
+        'processos_improcedentes': processos_improcedentes,
+        'processos_encerrados': processos_encerrados,
+        'processos_urgentes': processos_urgentes,
+        'processos_prazo_execucao': processos_prazo_execucao,
+        'processos_ouvidoria': processos_ouvidoria,
+        'timestamp': datetime.now().strftime('%H:%M:%S')
+    }
+
+
+# ==========================================================
+# 1️⃣ DASHBOARD DE PROCESSOS
+# ==========================================================
+@processos_bp.route('/dashboard')
+@login_required
+def dashboard_processos():
+    """Painel de Controle — Processos SEI tramitando pela CR/NOVACAP"""
+    metricas = calcular_metricas_dashboard()
+    return render_template('dashboard_processos.html', **metricas)
+
+
+@processos_bp.route('/api/stats')
+@login_required
+def api_dashboard_stats():
+    """API para atualização dinâmica em tempo real dos cards de indicadores (US03)"""
+    return jsonify(calcular_metricas_dashboard())
 
 
 # ==========================================================
@@ -256,12 +267,12 @@ def excluir_processo(id_processo):
 
 
 # ==========================================================
-# 5️⃣ CONSULTA UNIFICADA
+# 5️⃣ CONSULTA UNIFICADA (US04 - Ordenação por Colunas)
 # ==========================================================
 @processos_bp.route('/consultar', methods=['GET'])
 @login_required
 def consultar_processos():
-    """Consulta unificada de processos"""
+    """Consulta unificada de processos com ordenação e carregamento otimizado"""
     numero = request.args.get('numero_processo', '').strip()
     status_filtro = request.args.get('status')
     ra = request.args.get('ra')
@@ -293,6 +304,26 @@ def consultar_processos():
         fim_dt = datetime.strptime(fim, "%Y-%m-%d")
         query = query.filter(EntradaProcesso.data_entrada_novacap <= fim_dt)
 
+    # 🔀 Ordenação dinâmica das colunas (US04)
+    sort_by = request.args.get('sort_by', 'id').strip()
+    order = request.args.get('order', 'desc').strip().lower()
+    if order not in ['asc', 'desc']:
+        order = 'desc'
+
+    order_map = {
+        'numero': Processo.numero_processo,
+        'ra': EntradaProcesso.ra_origem,
+        'diretoria': Processo.diretoria_destino,
+        'status': Processo.status_atual,
+        'data': EntradaProcesso.data_documento,
+        'id': Processo.id_processo
+    }
+    coluna_ordenacao = order_map.get(sort_by, Processo.id_processo)
+    if order == 'asc':
+        query = query.order_by(coluna_ordenacao.asc())
+    else:
+        query = query.order_by(coluna_ordenacao.desc())
+
     # Paginação / Carregamento sob demanda (Otimização de Performance)
     try:
         limit = int(request.args.get('limit', 25))
@@ -302,7 +333,7 @@ def consultar_processos():
         limit = 25
 
     total_processos = query.count()
-    processos = query.order_by(Processo.id_processo.desc()).limit(limit).all()
+    processos = query.limit(limit).all()
 
     if not processos and total_processos == 0:
         flash("Nenhum processo encontrado com os filtros aplicados.", "warning")
@@ -325,6 +356,8 @@ def consultar_processos():
         processos=processos,
         total_processos=total_processos,
         limit=limit,
+        sort_by=sort_by,
+        order=order,
         todas_ras=todas_ras,
         todos_status=todos_status,
         demandas=demandas,

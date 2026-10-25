@@ -1,14 +1,16 @@
 """
 Rotas principais do sistema CR-NOVACAP.
-Inclui: tela inicial, login, cadastro, redefinição de senha e logout.
+Inclui: tela inicial, login, cadastro, redefinição de senha, logout e busca global.
 """
 from flask import (
-    render_template, request, redirect, url_for, flash, session
+    render_template, request, redirect, url_for, flash, session, jsonify
 )
 from flask_login import login_user, logout_user, login_required
 from werkzeug.security import generate_password_hash, check_password_hash
+from sqlalchemy import text, or_
+
 from app.ext import db
-from app.models.modelos import Usuario
+from app.models.modelos import Usuario, Processo
 from app.main import main_bp
 
 
@@ -166,13 +168,101 @@ def logout():
 
 
 # ==========================================================
-# Teste de conexão com banco
+# 6️⃣ Busca Global Instantânea (US09)
 # ==========================================================
-from flask import Blueprint, jsonify
-from sqlalchemy import text
+@main_bp.route('/api/busca-global')
+@login_required
+def api_busca_global():
+    """
+    Retorna resultados dinâmicos para a barra de busca instantânea do cabeçalho.
+    Inclui correspondências de processos SEI e atalhos de navegação rápida.
+    """
+    termo = (request.args.get('q') or '').strip()
+    if not termo or len(termo) < 2:
+        return jsonify({'processos': [], 'atalhos': []})
 
-main_bp = Blueprint('main_bp', __name__)
+    # 1. Busca em Processos
+    termo_limpo = termo.replace(' ', '')
+    processos = (
+        Processo.query
+        .filter(
+            or_(
+                Processo.numero_processo.ilike(f"%{termo}%"),
+                Processo.numero_processo.ilike(f"%{termo_limpo}%")
+            )
+        )
+        .order_by(Processo.id_processo.desc())
+        .limit(6)
+        .all()
+    )
 
+    resultados_processos = []
+    for p in processos:
+        resultados_processos.append({
+            'id': p.id_processo,
+            'numero': p.numero_processo,
+            'status': p.status_atual or 'Sem status',
+            'diretoria': p.diretoria_destino or 'Não informada',
+            'url_consulta': url_for('processos_bp.consultar_processos', numero_processo=p.numero_processo),
+            'url_alterar': url_for('processos_bp.alterar_processo', id_processo=p.id_processo)
+        })
+
+    # 2. Atalhos de navegação rápida
+    atalhos_base = [
+        {
+            'titulo': 'Cadastrar Novo Processo',
+            'subtitulo': 'Iniciar nova tramitação SEI',
+            'icone': 'fas fa-plus-circle',
+            'url': url_for('processos_bp.cadastro_processo'),
+            'tags': 'cadastrar novo processo sei entrada criar'
+        },
+        {
+            'titulo': 'Consultar Processos',
+            'subtitulo': 'Buscar e filtrar tabela unificada',
+            'icone': 'fas fa-folder-open',
+            'url': url_for('processos_bp.consultar_processos'),
+            'tags': 'consultar listar pesquisar processos tabela busca'
+        },
+        {
+            'titulo': 'Painel de Controle',
+            'subtitulo': 'Indicadores e métricas de desempenho',
+            'icone': 'fas fa-chart-pie',
+            'url': url_for('processos_bp.dashboard_processos'),
+            'tags': 'painel dashboard kpi totais metricas graficos tramitacao'
+        },
+        {
+            'titulo': 'Relatórios Avançados',
+            'subtitulo': 'Análise detalhada por RA, diretoria e status',
+            'icone': 'fas fa-file-alt',
+            'url': url_for('relatorios_bp.relatorios_avancados'),
+            'tags': 'relatorios relatorio avancado bi exportar csv excel'
+        }
+    ]
+
+    if session.get('is_admin'):
+        atalhos_base.append({
+            'titulo': 'Painel Administrativo',
+            'subtitulo': 'Gerenciamento de usuários e permissões',
+            'icone': 'fas fa-user-cog',
+            'url': url_for('admin_bp.painel_admin'),
+            'tags': 'admin administracao usuarios permissoes moderacao'
+        })
+
+    t_lower = termo.lower()
+    atalhos_correspondentes = [
+        a for a in atalhos_base
+        if t_lower in a['titulo'].lower() or any(tag in t_lower for tag in a['tags'].split())
+    ]
+
+    return jsonify({
+        'processos': resultados_processos,
+        'atalhos': atalhos_correspondentes
+    })
+
+
+# ==========================================================
+# 7️⃣ Teste de conexão com banco
+# ==========================================================
 @main_bp.route("/teste-db")
 def testar_banco():
     try:

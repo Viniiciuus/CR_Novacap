@@ -7,7 +7,7 @@
 
   <!-- 🔗 Ícones e Estilos -->
   <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css', v='5.0') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css', v='5.2') }}">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 
@@ -26,6 +26,21 @@
         <span class="brand-sub">Companhia Urbanizadora da Nova Capital — NOVACAP</span>
       </div>
     </a>
+
+    <!-- 🔍 Barra de Busca Global Instantânea (US09) -->
+    {% if current_user.is_authenticated %}
+    <div class="navbar-search-wrapper" id="global-search-container">
+      <div class="navbar-search">
+        <i class="fas fa-search search-icon"></i>
+        <input type="text" id="global-search-input" placeholder="Buscar processo ou seção..." autocomplete="off" aria-label="Busca global instantânea">
+        <kbd class="search-kbd" title="Atalho de teclado">Ctrl+K</kbd>
+        <button type="button" class="search-clear-btn" id="search-clear-btn" style="display: none;" title="Limpar busca">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="search-dropdown" id="search-dropdown" style="display: none;"></div>
+    </div>
+    {% endif %}
 
     <!-- Navegação principal em abas / pills modernas -->
     <nav class="navbar-nav">
@@ -89,32 +104,285 @@
     <p>© {{ current_year or 2025 }}</p>
   </footer>
 
-  {% block scripts %}{% endblock %}
-
   <!-- 🌙 Botão de alternância Dark Mode -->
   <button id="toggle-theme" title="Alternar tema claro / escuro">
     <i class="fas fa-moon"></i>
   </button>
 
+  <!-- ========================= -->
+  <!-- ⚡ Scripts Globais -->
+  <!-- ========================= -->
   <script>
-    const themeBtn = document.getElementById('toggle-theme');
-    const body = document.body;
-    const icon = themeBtn.querySelector('i');
+    // 🌙 Dark Mode Handler
+    (function() {
+      const themeBtn = document.getElementById('toggle-theme');
+      if (!themeBtn) return;
+      const body = document.body;
+      const icon = themeBtn.querySelector('i');
 
-    if (localStorage.getItem('theme') === 'dark') {
-      body.classList.add('dark-mode');
-      icon.classList.replace('fa-moon', 'fa-sun');
-    }
+      if (localStorage.getItem('theme') === 'dark') {
+        body.classList.add('dark-mode');
+        icon.classList.replace('fa-moon', 'fa-sun');
+      }
 
-    themeBtn.addEventListener('click', () => {
-      body.classList.toggle('dark-mode');
-      const isDark = body.classList.contains('dark-mode');
+      themeBtn.addEventListener('click', () => {
+        body.classList.toggle('dark-mode');
+        const isDark = body.classList.contains('dark-mode');
+        icon.classList.toggle('fa-moon', !isDark);
+        icon.classList.toggle('fa-sun', isDark);
+        localStorage.setItem('theme', isDark ? 'dark' : 'light');
+      });
+    })();
 
-      icon.classList.toggle('fa-moon', !isDark);
-      icon.classList.toggle('fa-sun', isDark);
-      localStorage.setItem('theme', isDark ? 'dark' : 'light');
-    });
+    // 🔄 "Carregar Mais" Assíncrono (Fix: elimina o pulo/scroll ao topo)
+    (function() {
+      document.addEventListener('click', async function (e) {
+        const btn = e.target.closest('.btn-load-more');
+        if (!btn) return;
+
+        e.preventDefault();
+        if (btn.dataset.loading === 'true') return;
+
+        btn.dataset.loading = 'true';
+        const originalContent = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>Carregando mais...</span>';
+        btn.style.pointerEvents = 'none';
+
+        try {
+          const response = await fetch(btn.href, {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+          });
+          if (!response.ok) throw new Error('Erro na resposta do servidor');
+
+          const html = await response.text();
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(html, 'text/html');
+
+          const currentTbody = document.querySelector('.styled-table tbody');
+          const newTbody = doc.querySelector('.styled-table tbody');
+
+          if (currentTbody && newTbody) {
+            const currentCount = currentTbody.querySelectorAll('tr').length;
+            const incomingRows = Array.from(newTbody.querySelectorAll('tr'));
+            const newRowsToAdd = incomingRows.slice(currentCount);
+
+            newRowsToAdd.forEach(tr => {
+              tr.style.opacity = '0';
+              currentTbody.appendChild(tr);
+              requestAnimationFrame(() => {
+                tr.style.transition = 'opacity 0.25s ease';
+                tr.style.opacity = '1';
+              });
+            });
+          }
+
+          // Atualiza contador informativo
+          const newInfo = doc.querySelector('.load-more-info');
+          const currentInfo = document.querySelector('.load-more-info');
+          if (newInfo && currentInfo) {
+            currentInfo.innerHTML = newInfo.innerHTML;
+          }
+
+          // Atualiza próximo limite ou remove botão se concluído
+          const nextBtn = doc.querySelector('.btn-load-more');
+          const container = btn.closest('.load-more-container');
+          if (nextBtn) {
+            btn.href = nextBtn.href;
+            btn.innerHTML = originalContent;
+            btn.dataset.loading = 'false';
+            btn.style.pointerEvents = 'auto';
+          } else {
+            btn.remove();
+            if (container) {
+              const finishedEl = document.createElement('div');
+              finishedEl.className = 'load-more-complete';
+              finishedEl.innerHTML = '<i class="fas fa-check-circle"></i> Todos os registros foram carregados.';
+              container.appendChild(finishedEl);
+            }
+          }
+        } catch (err) {
+          console.error('Falha ao carregar mais registros:', err);
+          btn.innerHTML = originalContent;
+          btn.dataset.loading = 'false';
+          btn.style.pointerEvents = 'auto';
+        }
+      });
+    })();
+
+    // 🔍 US09: Busca Global Instantânea (Autocomplete + Atalhos + Ctrl+K)
+    (function() {
+      const searchInput = document.getElementById('global-search-input');
+      const searchDropdown = document.getElementById('search-dropdown');
+      const clearBtn = document.getElementById('search-clear-btn');
+      if (!searchInput || !searchDropdown) return;
+
+      let debounceTimer = null;
+      let activeIndex = -1;
+
+      // Atalho de teclado Ctrl+K ou Cmd+K
+      window.addEventListener('keydown', (e) => {
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+          e.preventDefault();
+          searchInput.focus();
+          searchInput.select();
+        }
+      });
+
+      // Fechar dropdown com ESC ou clique fora
+      document.addEventListener('click', (e) => {
+        if (!e.target.closest('#global-search-container')) {
+          fecharDropdown();
+        }
+      });
+
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && searchDropdown.style.display !== 'none') {
+          fecharDropdown();
+          searchInput.blur();
+        }
+      });
+
+      // Botão Limpar
+      if (clearBtn) {
+        clearBtn.addEventListener('click', () => {
+          searchInput.value = '';
+          clearBtn.style.display = 'none';
+          fecharDropdown();
+          searchInput.focus();
+        });
+      }
+
+      function fecharDropdown() {
+        searchDropdown.style.display = 'none';
+        searchDropdown.innerHTML = '';
+        activeIndex = -1;
+      }
+
+      searchInput.addEventListener('input', () => {
+        const query = searchInput.value.trim();
+        if (clearBtn) {
+          clearBtn.style.display = query ? 'flex' : 'none';
+        }
+
+        clearTimeout(debounceTimer);
+        if (query.length < 2) {
+          fecharDropdown();
+          return;
+        }
+
+        debounceTimer = setTimeout(() => {
+          executaBusca(query);
+        }, 220);
+      });
+
+      async function executaBusca(termo) {
+        try {
+          searchDropdown.innerHTML = '<div class="search-loading"><i class="fas fa-spinner fa-spin"></i> Buscando...</div>';
+          searchDropdown.style.display = 'block';
+
+          const res = await fetch(`{{ url_for('main_bp.api_busca_global') }}?q=${encodeURIComponent(termo)}`);
+          if (!res.ok) throw new Error('Falha na requisição');
+          const data = await res.json();
+
+          renderizarResultados(data, termo);
+        } catch (e) {
+          searchDropdown.innerHTML = '<div class="search-no-results"><i class="fas fa-exclamation-circle"></i> Erro ao buscar dados.</div>';
+        }
+      }
+
+      function renderizarResultados(data, termo) {
+        const { processos, atalhos } = data;
+        let html = '';
+        activeIndex = -1;
+
+        if ((!processos || processos.length === 0) && (!atalhos || atalhos.length === 0)) {
+          searchDropdown.innerHTML = `<div class="search-no-results"><i class="fas fa-info-circle"></i> Nenhum resultado para "<strong>${escapeHtml(termo)}</strong>"</div>`;
+          return;
+        }
+
+        if (processos && processos.length > 0) {
+          html += '<div class="search-category-title"><i class="fas fa-folder"></i> Processos SEI</div>';
+          processos.forEach(p => {
+            const badgeClass = p.status.includes('Atendido') ? 'success' : (p.status.includes('Devolvido') ? 'warning' : (p.status.includes('Improcedente') ? 'danger' : 'neutral'));
+            html += `
+              <a href="${p.url_consulta}" class="search-item" data-type="processo">
+                <div class="search-item-left">
+                  <div class="search-item-icon"><i class="fas fa-file-alt"></i></div>
+                  <div class="search-item-details">
+                    <span class="search-item-title">${escapeHtml(p.numero)}</span>
+                    <span class="search-item-sub">${escapeHtml(p.diretoria || 'Diretoria não informada')}</span>
+                  </div>
+                </div>
+                <span class="badge ${badgeClass}">${escapeHtml(p.status)}</span>
+              </a>
+            `;
+          });
+        }
+
+        if (atalhos && atalhos.length > 0) {
+          html += '<div class="search-category-title"><i class="fas fa-compass"></i> Atalhos do Sistema</div>';
+          atalhos.forEach(a => {
+            html += `
+              <a href="${a.url}" class="search-item" data-type="atalho">
+                <div class="search-item-left">
+                  <div class="search-item-icon search-icon-shortcut"><i class="${a.icone}"></i></div>
+                  <div class="search-item-details">
+                    <span class="search-item-title">${escapeHtml(a.titulo)}</span>
+                    <span class="search-item-sub">${escapeHtml(a.subtitulo)}</span>
+                  </div>
+                </div>
+                <i class="fas fa-arrow-right search-item-arrow"></i>
+              </a>
+            `;
+          });
+        }
+
+        searchDropdown.innerHTML = html;
+        searchDropdown.style.display = 'block';
+      }
+
+      function escapeHtml(str) {
+        return (str || '').replace(/[&<>"']/g, function(m) {
+          return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m];
+        });
+      }
+
+      // Navegação por teclado nos itens da busca (Seta Cima / Seta Baixo / Enter)
+      searchInput.addEventListener('keydown', (e) => {
+        const items = searchDropdown.querySelectorAll('.search-item');
+        if (!items.length || searchDropdown.style.display === 'none') return;
+
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          activeIndex = (activeIndex + 1) % items.length;
+          atualizarSelecao(items);
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          activeIndex = (activeIndex - 1 + items.length) % items.length;
+          atualizarSelecao(items);
+        } else if (e.key === 'Enter') {
+          if (activeIndex >= 0 && activeIndex < items.length) {
+            e.preventDefault();
+            items[activeIndex].click();
+          }
+        }
+      });
+
+      function atualizarSelecao(items) {
+        items.forEach((it, idx) => {
+          if (idx === activeIndex) {
+            it.classList.add('active');
+            it.scrollIntoView({ block: 'nearest' });
+          } else {
+            it.classList.remove('active');
+          }
+        });
+      }
+
+    })();
   </script>
+
+  {% block scripts %}{% endblock %}
 
 </body>
 </html>
