@@ -40,7 +40,7 @@ def create_app():
     # ------------------------------------------------------
     app.config.update(
         SECRET_KEY=os.getenv('SECRET_KEY', 'chave-secreta-padrao'),
-        SQLALCHEMY_DATABASE_URI=os.getenv('DATABASE_URL'),
+        SQLALCHEMY_DATABASE_URI=os.getenv('DATABASE_URL', 'sqlite:///cr.db'),
         SQLALCHEMY_TRACK_MODIFICATIONS=False,
         PERMANENT_SESSION_LIFETIME=timedelta(hours=1),
     )
@@ -66,21 +66,17 @@ def create_app():
         return Usuario.query.get(int(user_id))
 
     # ------------------------------------------------------
-    # 📦 Registro de Blueprints institucionais
+    # 📦 Registro de Blueprints institucionais e API REST
     # ------------------------------------------------------
+    from app.api import api_bp
     app.register_blueprint(main_bp)
     app.register_blueprint(processos_bp, url_prefix='/processos')
     app.register_blueprint(relatorios_bp, url_prefix='/relatorios')
     app.register_blueprint(admin_bp, url_prefix='/admin')
+    app.register_blueprint(api_bp, url_prefix='/api')
 
-    # ------------------------------------------------------
-    # 🧩 Desativa CSRF apenas para rotas internas de tramitação
-    # ------------------------------------------------------
-    from app.processos.routes import cadastro_processo, alterar_processo, consultar_processos, verificar_processo
-    csrf.exempt(cadastro_processo)
-    csrf.exempt(alterar_processo)
-    csrf.exempt(consultar_processos)
-    csrf.exempt(verificar_processo)
+    # Exentar apenas a API REST de verificação CSRF (usa autenticação baseada em token/JSON)
+    csrf.exempt(api_bp)
 
     # ------------------------------------------------------
     # 🏠 Rota padrão (redireciona para login)
@@ -90,11 +86,20 @@ def create_app():
         return redirect(url_for('main_bp.login'))
 
     # ------------------------------------------------------
-    # 📅 Contexto global (ano atual no rodapé)
+    # 🎨 Contexto global (Whitelabel & Ano Atual no rodapé)
     # ------------------------------------------------------
     @app.context_processor
-    def inject_year():
-        """Adiciona o ano atual ao contexto global."""
-        return {'current_year': datetime.now().year}
+    def inject_global_context():
+        """Adiciona o ano atual e configurações de Whitelabel/Tenant ao contexto global."""
+        from flask_login import current_user
+        current_tenant = current_user.tenant if current_user and hasattr(current_user, 'tenant') and current_user.is_authenticated else None
+        
+        return {
+            'current_year': datetime.now().year,
+            'app_title': current_tenant.nome_empresa if current_tenant else "Sistema de Gestão de Processos e Chamados",
+            'brand_color': current_tenant.cor_primaria if current_tenant else "#0d6efd",
+            'brand_logo': current_tenant.logo_url if current_tenant else None,
+            'current_tenant': current_tenant
+        }
 
     return app

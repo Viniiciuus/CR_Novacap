@@ -11,12 +11,32 @@ from app.ext import db
 
 
 # ==========================================================
+# 🌐 TENANTS (MULTI-TENANCY / EMPRESAS)
+# ==========================================================
+class Tenant(db.Model):
+    __tablename__ = 'tenants'
+
+    id_tenant = db.Column(db.Integer, primary_key=True)
+    nome_empresa = db.Column(db.String(100), nullable=False)
+    slug = db.Column(db.String(50), unique=True, nullable=False)
+    logo_url = db.Column(db.String(255))
+    cor_primaria = db.Column(db.String(7), default="#0d6efd")
+    cor_secundaria = db.Column(db.String(7), default="#6c757d")
+    ativo = db.Column(db.Boolean, default=True)
+    data_criacao = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def __repr__(self):
+        return f"<Tenant {self.nome_empresa}>"
+
+
+# ==========================================================
 # 👤 USUÁRIOS DO SISTEMA
 # ==========================================================
 class Usuario(db.Model, UserMixin):
     __tablename__ = 'usuarios'
 
     id_usuario = db.Column(db.Integer, primary_key=True)
+    id_tenant = db.Column(db.Integer, db.ForeignKey('tenants.id_tenant'), nullable=True)
     nome = db.Column(db.String(100), nullable=False)
     usuario = db.Column(db.String(50), unique=True, nullable=False)
     email = db.Column(db.String(100), unique=True, nullable=False)
@@ -25,20 +45,25 @@ class Usuario(db.Model, UserMixin):
     bloqueado = db.Column(db.Boolean, default=False)
     is_admin = db.Column(db.Boolean, default=False)
 
+    tenant = db.relationship('Tenant', backref='usuarios', lazy=True)
+
     def get_id(self):
         return str(self.id_usuario)
 
 
 # ==========================================================
-# 🧭 DIRETORIAS
+# 🧭 DIRETORIAS / SETORES ORGANIZACIONAIS
 # ==========================================================
 class Diretoria(db.Model):
     __tablename__ = 'diretorias'
 
     id_diretoria = db.Column(db.Integer, primary_key=True)
+    id_tenant = db.Column(db.Integer, db.ForeignKey('tenants.id_tenant'), nullable=True)
     nome_completo = db.Column(db.String(100), nullable=False, unique=True)
     sigla = db.Column(db.String(10))
     descricao_exibicao = db.Column(db.String(120))
+
+    tenant = db.relationship('Tenant', backref='setores', lazy=True)
 
     # 🔁 Relação 1:N com Departamentos
     departamentos = db.relationship(
@@ -52,13 +77,18 @@ class Diretoria(db.Model):
         return f"<Diretoria {self.sigla or ''} - {self.nome_completo}>"
 
 
+# Alias genérico
+SetorOrganizacional = Diretoria
+
+
 # ==========================================================
-# 🏢 DEPARTAMENTOS
+# 🏢 DEPARTAMENTOS / SUB-SETORES
 # ==========================================================
 class Departamento(db.Model):
     __tablename__ = 'departamentos'
 
     id_departamento = db.Column(db.Integer, primary_key=True)
+    id_tenant = db.Column(db.Integer, db.ForeignKey('tenants.id_tenant'), nullable=True)
     nome = db.Column(db.String(150), nullable=False)
     id_diretoria = db.Column(
         db.Integer,
@@ -117,16 +147,20 @@ class TipoDemanda(db.Model):
 
 
 # ==========================================================
-# 📑 PROCESSOS
+# 📑 PROCESSOS / CHAMADOS (CHAMADO É O ALIAS GENÉRICO)
 # ==========================================================
 class Processo(db.Model):
     __tablename__ = 'processos'
 
     id_processo = db.Column(db.Integer, primary_key=True)
+    id_tenant = db.Column(db.Integer, db.ForeignKey('tenants.id_tenant'), nullable=True)
     numero_processo = db.Column(db.String(25), unique=True, nullable=False)
     status_atual = db.Column(db.String(100))
     observacoes = db.Column(db.Text)
     diretoria_destino = db.Column(db.String(100), nullable=False)
+    dados_customizados = db.Column(db.JSON, nullable=True)
+
+    tenant = db.relationship('Tenant', backref='processos', lazy=True)
 
     entradas = db.relationship(
         'EntradaProcesso',
@@ -134,6 +168,10 @@ class Processo(db.Model):
         cascade="all, delete-orphan",
         lazy=True
     )
+
+
+# Alias genérico para novo padrão de chamados
+Chamado = Processo
 
 
 # ==========================================================
@@ -158,12 +196,14 @@ class EntradaProcesso(db.Model):
         db.ForeignKey('demandas.id_demanda'),
         nullable=False
     )
+    demanda = db.relationship('Demanda', foreign_keys=[id_demanda], lazy=True)
     usuario_responsavel = db.Column(
         db.Integer,
         db.ForeignKey('usuarios.id_usuario'),
         nullable=False
     )
     responsavel = db.relationship("Usuario", foreign_keys=[usuario_responsavel])
+
 
     status_inicial = db.Column(
         db.String(100),
@@ -227,15 +267,22 @@ class Status(db.Model):
 
 
 # ==========================================================
-# 🗺️ REGIÕES ADMINISTRATIVAS
+# 🗺️ UNIDADES SOLICITANTES (EX-REGIÕES ADMINISTRATIVAS / FILIAIS)
 # ==========================================================
-class RegiaoAdministrativa(db.Model):
-    __tablename__ = 'regioes_administrativas'
+class UnidadeSolicitante(db.Model):
+    __tablename__ = 'unidades_solicitantes'
 
-    id_ra = db.Column(db.Integer, primary_key=True)
-    codigo_ra = db.Column(db.String(10), unique=True, nullable=False)
-    nome_ra = db.Column(db.String(100), nullable=False)
-    descricao_ra = db.Column(db.String(150), nullable=False)
+    id_unidade = db.Column(db.Integer, primary_key=True)
+    id_tenant = db.Column(db.Integer, db.ForeignKey('tenants.id_tenant'), nullable=True)
+    codigo = db.Column(db.String(20), nullable=False)
+    nome_unidade = db.Column(db.String(100), nullable=False)
+    descricao = db.Column(db.String(150))
+
+    tenant = db.relationship('Tenant', backref='unidades_solicitantes', lazy=True)
+
+
+# Alias para compatibilidade com a versão legada
+RegiaoAdministrativa = UnidadeSolicitante
 
 
 # ==========================================================
@@ -282,3 +329,80 @@ class Alerta(db.Model):
     respondido = db.Column(db.Boolean, default=False)
     data_resposta = db.Column(db.DateTime)
     forma_resposta = db.Column(db.String(50))
+
+
+# ==========================================================
+# ⚙️ MOTOR DE WORKFLOW (TRANSIÇÕES DE STATUS DINÂMICAS)
+# ==========================================================
+class TransicaoWorkflow(db.Model):
+    __tablename__ = 'transicoes_workflow'
+
+    id_transicao = db.Column(db.Integer, primary_key=True)
+    id_tenant = db.Column(db.Integer, db.ForeignKey('tenants.id_tenant'), nullable=True)
+    status_origem = db.Column(db.String(100), nullable=False)
+    status_destino = db.Column(db.String(100), nullable=False)
+    permissao_requerida = db.Column(db.String(50), default="padrao")
+
+    tenant = db.relationship('Tenant', backref='transicoes_workflow', lazy=True)
+
+
+# ==========================================================
+# ⏱️ CONFIGURAÇÃO DE SLA (SERVICE LEVEL AGREEMENT)
+# ==========================================================
+class SLAConfig(db.Model):
+    __tablename__ = 'sla_configs'
+
+    id_sla = db.Column(db.Integer, primary_key=True)
+    id_tenant = db.Column(db.Integer, db.ForeignKey('tenants.id_tenant'), nullable=True)
+    prioridade = db.Column(db.String(20), nullable=False)  # Baixa, Média, Alta, Crítica
+    prazo_horas = db.Column(db.Integer, nullable=False, default=48)
+    notificar_antes_horas = db.Column(db.Integer, default=4)
+
+    tenant = db.relationship('Tenant', backref='sla_configs', lazy=True)
+
+
+# ==========================================================
+# 🔍 TRILHA DE AUDITORIA DE PROCESSOS (US08)
+# ==========================================================
+class AuditoriaProcesso(db.Model):
+    __tablename__ = 'auditoria_processos'
+
+    id_auditoria = db.Column(db.Integer, primary_key=True)
+    id_processo = db.Column(
+        db.Integer,
+        db.ForeignKey('processos.id_processo', ondelete='CASCADE'),
+        nullable=False
+    )
+    id_usuario = db.Column(
+        db.Integer,
+        db.ForeignKey('usuarios.id_usuario'),
+        nullable=True
+    )
+    campo_alterado = db.Column(db.String(100), nullable=False)
+    valor_anterior = db.Column(db.Text, nullable=True)
+    valor_novo = db.Column(db.Text, nullable=True)
+    acao = db.Column(db.String(100), default='Alteração')
+    justificativa = db.Column(db.Text, nullable=True)
+    data_hora = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    ip_origem = db.Column(db.String(45), nullable=True)
+
+    # Relacionamentos
+    processo = db.relationship(
+        'Processo',
+        backref=db.backref('historico_auditoria', lazy=True, cascade='all, delete-orphan', order_by='desc(AuditoriaProcesso.data_hora)')
+    )
+    usuario = db.relationship('Usuario', backref='auditorias_realizadas', lazy=True)
+
+    def to_dict(self):
+        return {
+            'id_auditoria': self.id_auditoria,
+            'id_processo': self.id_processo,
+            'usuario': self.usuario.nome if self.usuario else (self.usuario.usuario if self.usuario else 'Sistema / Auditoria Automática'),
+            'campo_alterado': self.campo_alterado,
+            'valor_anterior': self.valor_anterior or '---',
+            'valor_novo': self.valor_novo or '---',
+            'acao': self.acao,
+            'justificativa': self.justificativa or '',
+            'data_hora': self.data_hora.strftime('%d/%m/%Y %H:%M:%S') if self.data_hora else '---',
+            'ip_origem': self.ip_origem or '---'
+        }

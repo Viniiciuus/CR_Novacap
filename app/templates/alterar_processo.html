@@ -67,13 +67,18 @@
     </div>
 
     <!-- Botões de Ação -->
-    <div class="button-toolbar" style="justify-content: center; margin-top: 2.2rem;">
+    <div class="button-toolbar" style="justify-content: center; margin-top: 2.2rem; flex-wrap: wrap; gap: 0.6rem;">
       <button type="submit" class="btn btn-primary" onclick="this.disabled=true;this.form.submit();">
         <i class="fas fa-save"></i>
         <span>Salvar Alteração</span>
       </button>
 
-      <a href="{{ url_for('processos_bp.consultar_processos') }}" class="btn btn-outline-blue">
+      <a href="{{ url_for('processos_bp.detalhes_processo', id_processo=processo.id_processo) }}" class="btn btn-outline-blue">
+        <i class="fas fa-shield-alt"></i>
+        <span>Ver Trilha de Auditoria</span>
+      </a>
+
+      <a href="{{ url_for('processos_bp.consultar_processos') }}" class="btn btn-outline-gray">
         <i class="fas fa-search"></i>
         <span>Consultar Processos</span>
       </a>

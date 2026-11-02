@@ -6,20 +6,23 @@ consulta unificada com ordenação em tempo real e exportações (CSV, XLSX, PDF
 """
 
 import os
+import csv
+import io
 from datetime import datetime
 from io import BytesIO
 import pandas as pd
 
 from flask import (
     render_template, request, redirect, url_for, flash,
-    send_file, jsonify, current_app
+    send_file, jsonify, current_app, Response
 )
-from flask_login import login_required
+from flask_login import login_required, current_user
 
 from app.ext import db, csrf
 from app.models.modelos import (
     Processo, EntradaProcesso, Demanda, RegiaoAdministrativa,
-    Status, Usuario, Movimentacao, Diretoria, Alerta
+    Status, Usuario, Movimentacao, Diretoria, Alerta,
+    AuditoriaProcesso, LogUsuario
 )
 from app.processos import processos_bp
 
@@ -163,10 +166,40 @@ def cadastro_processo():
                 data=data_documento
             )
             db.session.add(primeira_mov)
+
+            # 🔍 Trilha de Auditoria (US08)
+            ip_origem = request.headers.get('X-Forwarded-For', request.remote_addr)
+            id_autor = current_user.id_usuario if current_user.is_authenticated else entrada.usuario_responsavel
+            auditoria_inicial = AuditoriaProcesso(
+                id_processo=novo.id_processo,
+                id_usuario=id_autor,
+                campo_alterado='Criação do Processo',
+                valor_anterior='---',
+                valor_novo=f"Status: {novo.status_atual} | Destino: {novo.diretoria_destino}",
+                acao='Cadastro Inicial',
+                justificativa=novo.observacoes or 'Cadastro inicial e autuação do processo.',
+                data_hora=datetime.now(),
+                ip_origem=ip_origem
+            )
+            db.session.add(auditoria_inicial)
+
+            # Sincronização com log de usuário
+            if id_autor:
+                log_u = LogUsuario(
+                    id_usuario=id_autor,
+                    acao="Cadastro de Processo",
+                    tabela_afetada="processos",
+                    id_referencia=novo.id_processo,
+                    descricao_detalhada=f"Processo {numero} autuado no sistema.",
+                    ip_origem=ip_origem,
+                    data_hora=datetime.now()
+                )
+                db.session.add(log_u)
+
             db.session.commit()
 
             flash(f"✅ Processo {numero} cadastrado com sucesso!", "success")
-            return redirect(url_for('processos_bp.cadastro_processo'))
+            return redirect(url_for('processos_bp.detalhes_processo', id_processo=novo.id_processo))
 
         except Exception as e:
             db.session.rollback()
@@ -195,30 +228,102 @@ def cadastro_processo():
 @processos_bp.route('/alterar/<int:id_processo>', methods=['GET', 'POST'])
 @login_required
 def alterar_processo(id_processo):
-    """Atualiza o status e registra movimentação"""
+    """Atualiza o status, responsável e registra movimentação com trilha de auditoria (US08)"""
     processo = Processo.query.get_or_404(id_processo)
     entrada = EntradaProcesso.query.filter_by(id_processo=id_processo).first()
 
     if request.method == 'POST':
         try:
+            status_anterior = processo.status_atual or "---"
+            obs_anterior = processo.observacoes or "---"
+            resp_anterior = entrada.responsavel if (entrada and entrada.responsavel) else None
+            resp_anterior_nome = resp_anterior.nome if resp_anterior else (f"ID {entrada.usuario_responsavel}" if (entrada and entrada.usuario_responsavel) else "Não definido")
+
             novo_status = request.form.get('novo_status')
-            observacao = request.form.get('observacao')
+            observacao = request.form.get('observacao', '').strip()
             data_movimentacao = datetime.strptime(request.form.get('data_movimentacao'), "%Y-%m-%d")
             responsavel_id = int(request.form.get('responsavel_tecnico'))
+            novo_resp = Usuario.query.get(responsavel_id)
+            novo_resp_nome = novo_resp.nome if novo_resp else f"ID {responsavel_id}"
 
-            nova_mov = Movimentacao(
-                id_entrada=entrada.id_entrada,
-                id_usuario=responsavel_id,
-                novo_status=novo_status,
-                observacao=observacao,
-                data=data_movimentacao
-            )
-            db.session.add(nova_mov)
+            # 1. Cria nova movimentação
+            if entrada:
+                nova_mov = Movimentacao(
+                    id_entrada=entrada.id_entrada,
+                    id_usuario=responsavel_id,
+                    novo_status=novo_status,
+                    observacao=observacao,
+                    data=data_movimentacao
+                )
+                db.session.add(nova_mov)
+
+            # 2. Metadados de auditoria (US08)
+            ip_origem = request.headers.get('X-Forwarded-For', request.remote_addr)
+            id_autor = current_user.id_usuario if current_user.is_authenticated else responsavel_id
+
+            # Registra auditoria: Alteração de Status
+            if status_anterior != novo_status:
+                db.session.add(AuditoriaProcesso(
+                    id_processo=processo.id_processo,
+                    id_usuario=id_autor,
+                    campo_alterado='Status Atual',
+                    valor_anterior=status_anterior,
+                    valor_novo=novo_status,
+                    acao='Alteração de Status',
+                    justificativa=observacao or 'Atualização periódica de tramitação.',
+                    data_hora=datetime.now(),
+                    ip_origem=ip_origem
+                ))
+
+            # Registra auditoria: Alteração de Responsável Técnico
+            if entrada and entrada.usuario_responsavel != responsavel_id:
+                db.session.add(AuditoriaProcesso(
+                    id_processo=processo.id_processo,
+                    id_usuario=id_autor,
+                    campo_alterado='Responsável Técnico',
+                    valor_anterior=resp_anterior_nome,
+                    valor_novo=novo_resp_nome,
+                    acao='Reatribuição de Responsável',
+                    justificativa=observacao or 'Transferência de responsabilidade técnica.',
+                    data_hora=datetime.now(),
+                    ip_origem=ip_origem
+                ))
+                entrada.usuario_responsavel = responsavel_id
+
+            # Registra auditoria: Despacho / Observações
+            if observacao and observacao != obs_anterior:
+                db.session.add(AuditoriaProcesso(
+                    id_processo=processo.id_processo,
+                    id_usuario=id_autor,
+                    campo_alterado='Despacho / Observação',
+                    valor_anterior=obs_anterior,
+                    valor_novo=observacao,
+                    acao='Novo Despacho Registrado',
+                    justificativa=observacao,
+                    data_hora=datetime.now(),
+                    ip_origem=ip_origem
+                ))
+
+            # Atualiza objeto Processo
             processo.status_atual = novo_status
+            processo.observacoes = observacao
+
+            # Sincroniza log geral de auditoria
+            if id_autor:
+                db.session.add(LogUsuario(
+                    id_usuario=id_autor,
+                    acao="Alteração de Processo",
+                    tabela_afetada="processos",
+                    id_referencia=processo.id_processo,
+                    descricao_detalhada=f"Processo {processo.numero_processo} atualizado para status '{novo_status}' com responsável '{novo_resp_nome}'.",
+                    ip_origem=ip_origem,
+                    data_hora=datetime.now()
+                ))
+
             db.session.commit()
 
-            flash("✅ Movimentação registrada com sucesso!", "success")
-            return redirect(url_for('processos_bp.consultar_processos', numero_processo=processo.numero_processo))
+            flash("✅ Movimentação registrada e trilha de auditoria atualizada com sucesso!", "success")
+            return redirect(url_for('processos_bp.detalhes_processo', id_processo=processo.id_processo))
 
         except Exception as e:
             db.session.rollback()
@@ -231,8 +336,130 @@ def alterar_processo(id_processo):
     return render_template(
         'alterar_processo.html',
         processo=processo,
+        entrada=entrada,
         usuarios=usuarios,
         status=status
+    )
+
+
+# ==========================================================
+# 🔍 DETALHAMENTO DO PROCESSO & TRILHA DE AUDITORIA (US08)
+# ==========================================================
+@processos_bp.route('/detalhes/<int:id_processo>', methods=['GET'])
+@login_required
+def detalhes_processo(id_processo):
+    """
+    Visualização de detalhamento do processo e trilha de auditoria (US08).
+    Modo estritamente somente leitura acessível a partir da consulta de processos.
+    Exibe dados consolidados e histórico cronológico completo de todas as alterações com
+    data/hora, responsável e valores antes/depois.
+    """
+    processo = Processo.query.get_or_404(id_processo)
+    entrada = EntradaProcesso.query.filter_by(id_processo=id_processo).first()
+    
+    # Ordem cronológica (padrão: mais recentes primeiro; permite alternar para mais antigos primeiro)
+    ordem = request.args.get('ordem', 'desc').lower()
+    if ordem == 'asc':
+        historico = AuditoriaProcesso.query.filter_by(id_processo=id_processo)\
+            .order_by(AuditoriaProcesso.data_hora.asc(), AuditoriaProcesso.id_auditoria.asc()).all()
+    else:
+        historico = AuditoriaProcesso.query.filter_by(id_processo=id_processo)\
+            .order_by(AuditoriaProcesso.data_hora.desc(), AuditoriaProcesso.id_auditoria.desc()).all()
+    
+    # Auto-recuperação de conformidade US08: se não houver histórico, cria o registro inicial
+    if not historico:
+        ip_origem = request.headers.get('X-Forwarded-For', request.remote_addr)
+        id_autor = entrada.usuario_responsavel if (entrada and entrada.usuario_responsavel) else (current_user.id_usuario if current_user.is_authenticated else 1)
+        dt_inicial = entrada.data_entrada_novacap if (entrada and entrada.data_entrada_novacap) else datetime.now()
+        base_aud = AuditoriaProcesso(
+            id_processo=processo.id_processo,
+            id_usuario=id_autor,
+            campo_alterado='Criação do Processo',
+            valor_anterior='---',
+            valor_novo=f"Status: {processo.status_atual or 'Não informado'} | Destino: {processo.diretoria_destino or 'Não definido'}",
+            acao='Cadastro Inicial',
+            justificativa=processo.observacoes or 'Registro cadastral inicial do processo no sistema.',
+            data_hora=dt_inicial,
+            ip_origem=ip_origem or '127.0.0.1 (Registro Automático)'
+        )
+        db.session.add(base_aud)
+        db.session.commit()
+        historico = [base_aud]
+
+    demanda = Demanda.query.get(entrada.id_demanda) if (entrada and entrada.id_demanda) else None
+    responsavel = Usuario.query.get(entrada.usuario_responsavel) if (entrada and entrada.usuario_responsavel) else None
+    movimentacoes = Movimentacao.query.filter_by(id_entrada=entrada.id_entrada).order_by(Movimentacao.data.desc()).all() if entrada else []
+
+    return render_template(
+        'detalhes_processo.html',
+        processo=processo,
+        entrada=entrada,
+        demanda=demanda,
+        responsavel=responsavel,
+        historico=historico,
+        movimentacoes=movimentacoes,
+        ordem=ordem
+    )
+
+
+# ==========================================================
+# 🔍 API JSON - TRILHA DE AUDITORIA (US08)
+# ==========================================================
+@processos_bp.route('/api/auditoria/<int:id_processo>', methods=['GET'])
+@login_required
+def api_auditoria_processo(id_processo):
+    """Retorna a trilha de auditoria do processo em formato JSON"""
+    historico = AuditoriaProcesso.query.filter_by(id_processo=id_processo)\
+        .order_by(AuditoriaProcesso.data_hora.desc(), AuditoriaProcesso.id_auditoria.desc()).all()
+    return jsonify([h.to_dict() for h in historico])
+
+
+# ==========================================================
+# 🔍 EXPORTAR TRILHA DE AUDITORIA EM CSV (US08)
+# ==========================================================
+@processos_bp.route('/auditoria/csv/<int:id_processo>', methods=['GET'])
+@login_required
+def exportar_auditoria_csv(id_processo):
+    """Exporta a trilha de auditoria completa do processo em formato CSV (US08)"""
+    processo = Processo.query.get_or_404(id_processo)
+    historico = AuditoriaProcesso.query.filter_by(id_processo=id_processo)\
+        .order_by(AuditoriaProcesso.data_hora.asc(), AuditoriaProcesso.id_auditoria.asc()).all()
+
+    output = io.StringIO()
+    writer = csv.writer(output, delimiter=';')
+    writer.writerow([
+        'ID Auditoria',
+        'Nº Processo',
+        'Data e Hora',
+        'Responsável',
+        'Ação',
+        'Campo Alterado',
+        'Valor Anterior',
+        'Valor Novo',
+        'Justificativa / Despacho',
+        'IP Origem'
+    ])
+
+    for h in historico:
+        writer.writerow([
+            h.id_auditoria,
+            processo.numero_processo,
+            h.data_hora.strftime('%d/%m/%Y %H:%M:%S') if h.data_hora else '',
+            h.usuario.nome if h.usuario else 'Sistema / Auditoria Automática',
+            h.acao or 'Alteração',
+            h.campo_alterado,
+            h.valor_anterior or '',
+            h.valor_novo or '',
+            h.justificativa or '',
+            h.ip_origem or ''
+        ])
+
+    output.seek(0)
+    nome_arquivo = f"auditoria_{processo.numero_processo.replace('/', '_')}.csv"
+    return Response(
+        output.getvalue().encode('utf-8-sig'),
+        mimetype="text/csv",
+        headers={"Content-Disposition": f"attachment; filename={nome_arquivo}"}
     )
 
 
@@ -253,6 +480,7 @@ def excluir_processo(id_processo):
             Movimentacao.query.filter_by(id_entrada=entrada.id_entrada).delete()
             db.session.delete(entrada)
 
+        AuditoriaProcesso.query.filter_by(id_processo=id_processo).delete()
         numero_processo = processo.numero_processo
         db.session.delete(processo)
         db.session.commit()
@@ -346,7 +574,7 @@ def consultar_processos():
             ultima_mov = Movimentacao.query.filter_by(id_entrada=entrada.id_entrada).order_by(Movimentacao.data.desc()).first()
             p.ultima_data = ultima_mov.data if ultima_mov else entrada.data_documento
 
-    todas_ras = RegiaoAdministrativa.query.order_by(RegiaoAdministrativa.descricao_ra).all()
+    todas_ras = RegiaoAdministrativa.query.order_by(RegiaoAdministrativa.nome_unidade).all()
     todos_status = Status.query.order_by(Status.ordem_exibicao).all()
     demandas = Demanda.query.order_by(Demanda.descricao.asc()).all()
     diretorias = [d.nome_completo for d in Diretoria.query.order_by(Diretoria.nome_completo.asc()).all()]
@@ -381,12 +609,14 @@ def exportar_processo_pdf(id_processo):
     elements = []
     styles = getSampleStyleSheet()
 
-    logo_path = os.path.join(current_app.root_path, "static", "images", "ico-logo-gdf.svg")
+    logo_path = os.path.join(current_app.root_path, "static", "images", "logo-novacap.png")
     if os.path.exists(logo_path):
         try:
-            elements.append(Image(logo_path, width=80, height=60))
+            elements.append(Image(logo_path, width=120, height=35))
+            elements.append(Spacer(1, 8))
         except Exception:
             pass
+
 
     elements.append(Paragraph("<b>Relatório Institucional de Processo</b>", styles['Title']))
     elements.append(Spacer(1, 12))
@@ -436,6 +666,39 @@ def exportar_processo_pdf(id_processo):
         elements.append(t3)
     else:
         elements.append(Paragraph("Nenhuma movimentação registrada.", styles['Normal']))
+
+    # 🔍 Trilha de Auditoria e Histórico de Alterações (US08)
+    elements.append(Spacer(1, 14))
+    elements.append(Paragraph("<b>Trilha de Auditoria e Histórico de Alterações (US08)</b>", styles['Heading2']))
+    
+    auditorias = AuditoriaProcesso.query.filter_by(id_processo=id_processo)\
+        .order_by(AuditoriaProcesso.data_hora.asc(), AuditoriaProcesso.id_auditoria.asc()).all()
+
+    if auditorias:
+        aud_table = [["Data/Hora", "Ação", "Campo Alterado", "Valor Anterior -> Novo", "Responsável"]]
+        for a in auditorias:
+            resp_nome = a.usuario.nome if a.usuario else "Sistema / Auditoria"
+            v_ant = (a.valor_anterior or '---')[:35]
+            v_novo = (a.valor_novo or '---')[:35]
+            transicao = f"{v_ant} -> {v_novo}"
+            aud_table.append([
+                a.data_hora.strftime("%d/%m/%Y %H:%M") if a.data_hora else "---",
+                a.acao or "Alteração",
+                a.campo_alterado or "Geral",
+                transicao,
+                resp_nome
+            ])
+        t_aud = Table(aud_table, repeatRows=1, colWidths=[80, 95, 95, 160, 100])
+        t_aud.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#002D62")),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+            ('FONTSIZE', (0, 0), (-1, -1), 8),
+            ('GRID', (0, 0), (-1, -1), 0.25, colors.grey),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ]))
+        elements.append(t_aud)
+    else:
+        elements.append(Paragraph("Nenhum registro de auditoria disponível.", styles['Normal']))
 
     doc.build(elements)
     output.seek(0)

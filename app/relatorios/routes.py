@@ -32,7 +32,7 @@ from app.relatorios import relatorios_bp
 @login_required
 def relatorios_avancados():
     todos_status = Status.query.order_by(Status.ordem_exibicao).all()
-    todas_ras = RegiaoAdministrativa.query.order_by(RegiaoAdministrativa.descricao_ra).all()
+    todas_ras = RegiaoAdministrativa.query.order_by(RegiaoAdministrativa.nome_unidade).all()
     todas_demandas = Demanda.query.order_by(Demanda.descricao.asc()).all()
     todas_diretorias = Diretoria.query.order_by(Diretoria.descricao_exibicao).all()
     todos_departamentos = Departamento.query.order_by(Departamento.nome).all()
@@ -91,19 +91,37 @@ def relatorios_avancados():
     dados = []
     ras_distintas = set()
     demandas_distintas = set()
+    status_count = {}
+    diretoria_count = {}
+    total_atendidos = 0
 
     for mov, user, entrada, processo, demanda, departamento, diretoria in resultados:
+        dt_str = mov.data.strftime("%d/%m/%Y %H:%M") if mov.data else "—"
+        dt_iso = mov.data.strftime("%Y-%m-%d") if mov.data else ""
+        mes_ano = mov.data.strftime("%m/%Y") if mov.data else ""
+
+        st = mov.novo_status if mov and mov.novo_status else "Não informado"
+        dir_nome = diretoria.descricao_exibicao if diretoria and diretoria.descricao_exibicao else "Não informado"
+
         dados.append({
-            "Data": mov.data.strftime("%d/%m/%Y %H:%M") if mov.data else "—",
+            "Data": dt_str,
+            "DataISO": dt_iso,
+            "MesAno": mes_ano,
             "Número do Processo": processo.numero_processo if processo else "—",
             "RA": entrada.ra_origem if entrada else "—",
-            "Status": mov.novo_status if mov else "—",
-            "Diretoria": diretoria.descricao_exibicao if diretoria else "Não informado",
+            "Status": st,
+            "Diretoria": dir_nome,
             "Departamento": departamento.nome if departamento else "Não informado",
             "Serviço": demanda.descricao if demanda else "—",
             "Responsável": user.usuario if user else "—",
             "Observação": mov.observacao if mov else ""
         })
+
+        if st in ["Atendido", "Concluído", "Deferido"]:
+            total_atendidos += 1
+
+        status_count[st] = status_count.get(st, 0) + 1
+        diretoria_count[dir_nome] = diretoria_count.get(dir_nome, 0) + 1
 
         if entrada and entrada.ra_origem:
             ras_distintas.add(entrada.ra_origem)
@@ -116,6 +134,12 @@ def relatorios_avancados():
     total_resultados = len(df)
     total_ras = len(ras_distintas)
     total_demandas = len(demandas_distintas)
+
+    taxa_atendimento = round((total_atendidos / total_resultados * 100), 1) if total_resultados > 0 else 0.0
+
+    # Diretoria e Status Predominante
+    diretoria_destaque = max(diretoria_count, key=diretoria_count.get) if diretoria_count else "—"
+    status_predominante = max(status_count, key=status_count.get) if status_count else "—"
 
     demandas_mapeadas = [
         {
@@ -132,17 +156,10 @@ def relatorios_avancados():
     print("\n=== DEBUG RELATÓRIOS AVANÇADOS ===")
     print(f"URL acessada: {request.url}")
     print(f"Filtros recebidos: {dict(request.args)}")
-    print(f"Diretoria selecionada (raw): '{diretoria_sel}'")
-    if todas_diretorias:
-        print(f"Exemplo de diretoria no banco: '{todas_diretorias[0].descricao_exibicao}'")
-    print(f"Resultados encontrados na query: {len(resultados)}")
-    print(f"Total registros no DF: {total_resultados}")
-    print(f"Total RAs distintas: {total_ras}")
-    print(f"Total demandas distintas: {total_demandas}")
-    print(f"Itens para gráficos (dados_relatorio): {len(dados_relatorio)}")
-    print(f"Mapa demandas mapeadas: {len(demandas_mapeadas)} entradas")
-    if len(resultados) == 0:
-        print("QUERY RETORNOU 0 - VERIFIQUE JOINS E DADOS")
+    print(f"Resultados encontrados: {total_resultados}")
+    print(f"Taxa de Atendimento: {taxa_atendimento}%")
+    print(f"Diretoria Destaque: {diretoria_destaque}")
+    print(f"Status Predominante: {status_predominante}")
     print("==================================\n")
 
     # Paginação / Carregamento fracionado da tabela (Otimização de Performance)
@@ -167,6 +184,9 @@ def relatorios_avancados():
         limit=limit,
         total_ras=total_ras,
         total_demandas=total_demandas,
+        taxa_atendimento=taxa_atendimento,
+        diretoria_destaque=diretoria_destaque,
+        status_predominante=status_predominante,
         demandas_mapeadas=demandas_mapeadas,
         dados_relatorio=dados_relatorio
     )

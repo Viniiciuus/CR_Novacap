@@ -1,18 +1,48 @@
+import os
 import pandas as pd
 import dash
 import dash_bootstrap_components as dbc
 from dash import dcc, html
 from dash.dependencies import Input, Output
 import plotly.express as px
+from sqlalchemy import create_engine
 
-# Carregar dados
-df = pd.read_excel("analise_processos.xlsx")
-df['data_entrada_novacap'] = pd.to_datetime(df['data_entrada_novacap'], errors='coerce')
-df['mes_ano'] = df['data_entrada_novacap'].dt.to_period('M').astype(str)
+# ---------------------------------------------------------
+# 📊 Carregamento dinâmico do Banco de Dados com Fallback
+# ---------------------------------------------------------
+def carregar_dados():
+    db_url = os.getenv("DATABASE_URL")
+    if db_url:
+        try:
+            engine = create_engine(db_url)
+            query = """
+                SELECT p.numero_processo, e.ra_origem, e.data_entrada_novacap, p.status_atual as status_final
+                FROM processos p
+                LEFT JOIN entradas_processo e ON p.id_processo = e.id_processo
+            """
+            df_dados = pd.read_sql(query, engine)
+            if not df_dados.empty:
+                df_dados['data_entrada_novacap'] = pd.to_datetime(df_dados['data_entrada_novacap'], errors='coerce')
+                df_dados['mes_ano'] = df_dados['data_entrada_novacap'].dt.to_period('M').astype(str)
+                return df_dados
+        except Exception as e:
+            print(f"⚠️ Aviso: Não foi possível conectar ao banco. Usando fallback. Erro: {e}")
+    
+    # Fallback se a planilha existir ou dataframe vazio
+    if os.path.exists("analise_processos.xlsx"):
+        df_dados = pd.read_excel("analise_processos.xlsx")
+        df_dados['data_entrada_novacap'] = pd.to_datetime(df_dados['data_entrada_novacap'], errors='coerce')
+        df_dados['mes_ano'] = df_dados['data_entrada_novacap'].dt.to_period('M').astype(str)
+        return df_dados
+    
+    # Retorno padrão vazio estruturado
+    return pd.DataFrame(columns=['numero_processo', 'ra_origem', 'data_entrada_novacap', 'status_final', 'mes_ano'])
+
+df = carregar_dados()
 
 # Inicializar app com tema LUX
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.LUX])
-app.title = "Painel de BI - CR/NOVACAP"
+app.title = "Painel de BI - Gestão de Processos e Chamados"
 
 # Layout
 app.layout = dbc.Container([
