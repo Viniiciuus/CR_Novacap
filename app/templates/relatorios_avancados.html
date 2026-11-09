@@ -126,42 +126,227 @@
 
   </form>
 
-  <!-- 📊 CARDS DE INDICADORES -->
-  <div class="card-grid">
+  <!-- 📊 CARDS DE INDICADORES VISUAIS DE DESTAQUE (US02 - DADOS CONSOLIDADOS) -->
+  <div class="kpi-grid">
 
-    <div class="info-card">
-      <h3><i class="fas fa-database"></i> Total de Registros</h3>
-      <div class="info-value">{{ total_resultados }}</div>
+    <!-- Card 1: Total Geral de Processos -->
+    <div class="kpi-card accent-primary">
+      <div class="kpi-top">
+        <span class="kpi-title">Total de Processos</span>
+        <div class="kpi-icon"><i class="fas fa-folder-open"></i></div>
+      </div>
+      <div class="kpi-value">{{ total_resultados }}</div>
+      <div class="kpi-detail">
+        <i class="fas fa-database"></i> Volume total no recorte filtrado
+      </div>
     </div>
 
-    <div class="info-card">
-      <h3><i class="fas fa-map-marker-alt"></i> RAs Envolvidas</h3>
-      <div class="info-value">{{ total_ras }}</div>
+    <!-- Card 2: Taxa de Atendimento / Conclusão -->
+    <div class="kpi-card accent-success">
+      <div class="kpi-top">
+        <span class="kpi-title">Taxa de Conclusão / Atendimento</span>
+        <div class="kpi-icon" style="background-color: #d4edda; color: #155724;"><i class="fas fa-check-circle"></i></div>
+      </div>
+      <div class="kpi-value" style="color: #28a745;">{{ taxa_atendimento }}%</div>
+      <div class="kpi-progress-bar">
+        <div class="kpi-progress-fill" style="width: {{ taxa_atendimento }}%;"></div>
+      </div>
+      <div class="kpi-detail" style="margin-top: 0.4rem;">
+        <strong>{{ total_atendidos }}</strong> de {{ total_resultados }} processos atendidos
+      </div>
     </div>
 
-    <div class="info-card">
-      <h3><i class="fas fa-list-check"></i> Demandas Distintas</h3>
-      <div class="info-value">{{ total_demandas }}</div>
+    <!-- Card 3: Status Predominante -->
+    <div class="kpi-card accent-info">
+      <div class="kpi-top">
+        <span class="kpi-title">Status Predominante</span>
+        <div class="kpi-icon" style="background-color: #e0f2fe; color: #0284c7;"><i class="fas fa-flag"></i></div>
+      </div>
+      <div class="kpi-value-truncate" title="{{ status_predominante }}">
+        <span class="badge {{ status_badge_class }}">{{ status_predominante }}</span>
+      </div>
+      <div class="kpi-detail">
+        <strong>{{ status_predominante_qtd }}</strong> processos ({{ status_predominante_pct }}% do volume)
+      </div>
+    </div>
+
+    <!-- Card 4: Diretoria Mais Demandada -->
+    <div class="kpi-card accent-purple">
+      <div class="kpi-top">
+        <span class="kpi-title">Diretoria Mais Demandada</span>
+        <div class="kpi-icon" style="background-color: #f3e8ff; color: #7e22ce;"><i class="fas fa-building"></i></div>
+      </div>
+      <div class="kpi-value-truncate" title="{{ diretoria_destaque }}">
+        {{ diretoria_destaque }}
+      </div>
+      <div class="kpi-detail">
+        <strong>{{ diretoria_destaque_qtd }}</strong> processos ({{ diretoria_destaque_pct }}% do volume)
+      </div>
+    </div>
+
+    <!-- Card 5: Região Administrativa em Destaque -->
+    <div class="kpi-card accent-orange">
+      <div class="kpi-top">
+        <span class="kpi-title">RA com Maior Volume</span>
+        <div class="kpi-icon" style="background-color: #ffedd5; color: #c2410c;"><i class="fas fa-map-marker-alt"></i></div>
+      </div>
+      <div class="kpi-value-truncate" title="{{ ra_destaque }}">
+        {{ ra_destaque }}
+      </div>
+      <div class="kpi-detail">
+        <strong>{{ ra_destaque_qtd }}</strong> processos ({{ ra_destaque_pct }}% do volume)
+      </div>
+    </div>
+
+    <!-- Card 6: Variedade & Alcance Regional -->
+    <div class="kpi-card accent-warning">
+      <div class="kpi-top">
+        <span class="kpi-title">Alcance & Diversidade</span>
+        <div class="kpi-icon" style="background-color: #fef3c7; color: #b45309;"><i class="fas fa-chart-pie"></i></div>
+      </div>
+      <div class="kpi-value" style="font-size: 1.5rem; color: #b45309;">
+        {{ total_ras }} <span style="font-size: 0.9rem; font-weight: 500; color: #666;">RAs</span> / {{ total_demandas }} <span style="font-size: 0.9rem; font-weight: 500; color: #666;">Serviços</span>
+      </div>
+      <div class="kpi-detail">
+        Regiões atendidas e demandas distintas no filtro
+      </div>
     </div>
 
   </div>
 
-  <!-- 📈 GRÁFICOS -->
+  <!-- 📈 SEÇÃO DE ANÁLISE GRÁFICA (US02) -->
   <h2 class="section-title">
     <i class="fas fa-chart-bar"></i> Análise Gráfica dos Dados
   </h2>
 
-  <div class="graficos-grid">
-    <div id="grafico_status" class="grafico-card"></div>
-    <div id="grafico_ra" class="grafico-card"></div>
-    <div id="grafico_diretoria" class="grafico-card"></div>
-    <div id="grafico_departamento" class="grafico-card"></div>
+  <!-- 🎛️ CONTROLES INTERATIVOS (US02: Alternar por Períodos ou Categorias) -->
+  <div class="chart-controls-wrapper">
+    <!-- Alternador por Categoria -->
+    <div class="control-group">
+      <span class="control-label"><i class="fas fa-layer-group"></i> Categoria:</span>
+      <div class="btn-pill-group" id="category-pills">
+        <button type="button" class="btn-pill active" data-category="todas">
+          <i class="fas fa-border-all"></i> Todas
+        </button>
+        <button type="button" class="btn-pill" data-category="periodo">
+          <i class="fas fa-calendar-alt"></i> Período
+        </button>
+        <button type="button" class="btn-pill" data-category="status">
+          <i class="fas fa-flag"></i> Status
+        </button>
+        <button type="button" class="btn-pill" data-category="ra">
+          <i class="fas fa-map-marker-alt"></i> RAs
+        </button>
+        <button type="button" class="btn-pill" data-category="diretoria">
+          <i class="fas fa-building"></i> Diretoria
+        </button>
+        <button type="button" class="btn-pill" data-category="servico">
+          <i class="fas fa-wrench"></i> Demandas
+        </button>
+      </div>
+    </div>
+
+    <!-- Alternador por Período (Mês / Ano) -->
+    <div class="control-group">
+      <span class="control-label"><i class="fas fa-clock"></i> Agrupamento Temporal:</span>
+      <div class="btn-pill-group" id="period-pills">
+        <button type="button" class="btn-pill active" data-period="mes">
+          <i class="fas fa-calendar-day"></i> Mês a Mês
+        </button>
+        <button type="button" class="btn-pill" data-period="ano">
+          <i class="fas fa-calendar"></i> Ano a Ano
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="graficos-grid" id="graficos-container">
+
+    <!-- Gráfico 1: Evolução Temporal de Processos (Destaque Full Width) -->
+    <div class="grafico-card full-width" data-chart-category="periodo" id="card_grafico_temporal">
+      <div class="grafico-header">
+        <h3><i class="fas fa-chart-line"></i> Evolução Temporal dos Processos (Histórico por Período)</h3>
+        <div class="grafico-header-actions">
+          <button type="button" class="chart-type-btn active" data-target="grafico_temporal" data-chart-type="line" title="Gráfico de Linha de Tendência">
+            <i class="fas fa-chart-line"></i> Linha
+          </button>
+          <button type="button" class="chart-type-btn" data-target="grafico_temporal" data-chart-type="bar" title="Gráfico de Barras Temporais">
+            <i class="fas fa-chart-bar"></i> Barras
+          </button>
+        </div>
+      </div>
+      <div id="grafico_temporal" class="grafico-body"></div>
+    </div>
+
+    <!-- Gráfico 2: Distribuição por Status -->
+    <div class="grafico-card" data-chart-category="status" id="card_grafico_status">
+      <div class="grafico-header">
+        <h3><i class="fas fa-tasks"></i> Distribuição por Status</h3>
+        <div class="grafico-header-actions">
+          <button type="button" class="chart-type-btn active" data-target="grafico_status" data-chart-type="bar" title="Visualizar em Barras">
+            <i class="fas fa-chart-bar"></i> Barras
+          </button>
+          <button type="button" class="chart-type-btn" data-target="grafico_status" data-chart-type="pie" title="Visualizar em Rosca (Donut)">
+            <i class="fas fa-chart-pie"></i> Rosca
+          </button>
+        </div>
+      </div>
+      <div id="grafico_status" class="grafico-body"></div>
+    </div>
+
+    <!-- Gráfico 3: Top RAs -->
+    <div class="grafico-card" data-chart-category="ra" id="card_grafico_ra">
+      <div class="grafico-header">
+        <h3><i class="fas fa-map-marked-alt"></i> Top Regiões Administrativas</h3>
+        <div class="grafico-header-actions">
+          <button type="button" class="chart-type-btn active" data-target="grafico_ra" data-chart-type="bar" title="Visualizar em Barras">
+            <i class="fas fa-chart-bar"></i> Barras
+          </button>
+          <button type="button" class="chart-type-btn" data-target="grafico_ra" data-chart-type="pie" title="Visualizar em Rosca">
+            <i class="fas fa-chart-pie"></i> Rosca
+          </button>
+        </div>
+      </div>
+      <div id="grafico_ra" class="grafico-body"></div>
+    </div>
+
+    <!-- Gráfico 4: Distribuição por Diretoria -->
+    <div class="grafico-card" data-chart-category="diretoria" id="card_grafico_diretoria">
+      <div class="grafico-header">
+        <h3><i class="fas fa-building"></i> Demanda por Diretoria de Destino</h3>
+        <div class="grafico-header-actions">
+          <button type="button" class="chart-type-btn active" data-target="grafico_diretoria" data-chart-type="bar" title="Visualizar em Barras">
+            <i class="fas fa-chart-bar"></i> Barras
+          </button>
+          <button type="button" class="chart-type-btn" data-target="grafico_diretoria" data-chart-type="pie" title="Visualizar em Rosca">
+            <i class="fas fa-chart-pie"></i> Rosca
+          </button>
+        </div>
+      </div>
+      <div id="grafico_diretoria" class="grafico-body"></div>
+    </div>
+
+    <!-- Gráfico 5: Top Demandas / Serviços -->
+    <div class="grafico-card" data-chart-category="servico" id="card_grafico_servico">
+      <div class="grafico-header">
+        <h3><i class="fas fa-tools"></i> Top Demandas & Serviços Solicitados</h3>
+        <div class="grafico-header-actions">
+          <button type="button" class="chart-type-btn active" data-target="grafico_servico" data-chart-type="bar-h" title="Barras Horizontais">
+            <i class="fas fa-bars"></i> Barras
+          </button>
+          <button type="button" class="chart-type-btn" data-target="grafico_servico" data-chart-type="pie" title="Visualizar em Rosca">
+            <i class="fas fa-chart-pie"></i> Rosca
+          </button>
+        </div>
+      </div>
+      <div id="grafico_servico" class="grafico-body"></div>
+    </div>
+
   </div>
 
   <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 
   <script>
-  /* eslint-enable */
     (function () {
       // -----------------------------
       // DADOS VINDOS DA ROTA (Jinja → JS)
@@ -169,192 +354,524 @@
       const dados = {{ dados_relatorio | tojson | safe }} || [];
       const mapaDemandas = {{ demandas_mapeadas | tojson | safe }} || [];
 
+      // Estado dos gráficos (US02: alternância de tipo e período)
+      const chartStates = {
+        grafico_temporal: 'line',
+        grafico_status: 'bar',
+        grafico_ra: 'bar',
+        grafico_diretoria: 'bar',
+        grafico_servico: 'bar-h'
+      };
+
+      let agrupamentoPeriodo = 'mes'; // 'mes' ou 'ano'
+
       // -----------------------------
-      // FILTROS INTELIGENTES (UX)
+      // FILTROS INTELIGENTES EM CASCATA (UX)
       // -----------------------------
       document.addEventListener('DOMContentLoaded', function () {
         const selectDiretoria    = document.getElementById('filtro-diretoria');
         const selectDepartamento = document.getElementById('filtro-departamento');
         const selectServico      = document.getElementById('filtro-servico');
 
-        const valorInicialDiretoria    = selectDiretoria.value;
-        const valorInicialDepartamento = selectDepartamento.value;
-        const valorInicialServico      = selectServico.value;
+        if (selectDiretoria && selectDepartamento && selectServico) {
+          const valorInicialDepartamento = selectDepartamento.value;
+          const valorInicialServico      = selectServico.value;
 
-        function atualizarDepartamentos() {
-          const dir = selectDiretoria.value;
-          const departamentosSet = new Set();
+          function atualizarDepartamentos() {
+            const dir = selectDiretoria.value;
+            const departamentosSet = new Set();
 
-          mapaDemandas.forEach(function (item) {
-            if (!dir || item.diretoria === dir) {
-              if (item.departamento) {
-                departamentosSet.add(item.departamento);
+            mapaDemandas.forEach(function (item) {
+              if (!dir || item.diretoria === dir) {
+                if (item.departamento) {
+                  departamentosSet.add(item.departamento);
+                }
               }
-            }
-          });
-
-          const selecionadoAtual = selectDepartamento.value;
-
-          // limpa opções
-          selectDepartamento.innerHTML = '';
-          const optTodos = document.createElement('option');
-          optTodos.value = '';
-          optTodos.textContent = 'Todos';
-          selectDepartamento.appendChild(optTodos);
-
-          Array.from(departamentosSet)
-            .sort()
-            .forEach(function (nome) {
-              const opt = document.createElement('option');
-              opt.value = nome;
-              opt.textContent = nome;
-              selectDepartamento.appendChild(opt);
             });
 
-          // tenta manter seleção anterior se ainda existir
-          if (departamentosSet.has(selecionadoAtual)) {
-            selectDepartamento.value = selecionadoAtual;
-          } else if (valorInicialDepartamento && departamentosSet.has(valorInicialDepartamento)) {
-            selectDepartamento.value = valorInicialDepartamento;
-          }
-        }
+            const selecionadoAtual = selectDepartamento.value;
+            selectDepartamento.innerHTML = '';
+            const optTodos = document.createElement('option');
+            optTodos.value = '';
+            optTodos.textContent = 'Todos';
+            selectDepartamento.appendChild(optTodos);
 
-        function atualizarDemandas() {
-          const dir = selectDiretoria.value;
-          const dep = selectDepartamento.value;
+            Array.from(departamentosSet)
+              .sort()
+              .forEach(function (nome) {
+                const opt = document.createElement('option');
+                opt.value = nome;
+                opt.textContent = nome;
+                selectDepartamento.appendChild(opt);
+              });
 
-          const demandasSet = new Set();
-          mapaDemandas.forEach(function (item) {
-            if (dir && item.diretoria !== dir) return;
-            if (dep && item.departamento !== dep) return;
-            if (item.descricao) {
-              demandasSet.add(item.descricao);
+            if (departamentosSet.has(selecionadoAtual)) {
+              selectDepartamento.value = selecionadoAtual;
+            } else if (valorInicialDepartamento && departamentosSet.has(valorInicialDepartamento)) {
+              selectDepartamento.value = valorInicialDepartamento;
             }
+          }
+
+          function atualizarDemandas() {
+            const dir = selectDiretoria.value;
+            const dep = selectDepartamento.value;
+
+            const demandasSet = new Set();
+            mapaDemandas.forEach(function (item) {
+              if (dir && item.diretoria !== dir) return;
+              if (dep && item.departamento !== dep) return;
+              if (item.descricao) {
+                demandasSet.add(item.descricao);
+              }
+            });
+
+            const selecionadoAtual = selectServico.value;
+            selectServico.innerHTML = '';
+            const optTodas = document.createElement('option');
+            optTodas.value = '';
+            optTodas.textContent = 'Todas';
+            selectServico.appendChild(optTodas);
+
+            if (!dir && !dep && demandasSet.size === 0) {
+              {% for d in todas_demandas %}
+              (function () {
+                const opt = document.createElement('option');
+                opt.value = "{{ d.descricao }}";
+                opt.textContent = "{{ d.descricao }}";
+                selectServico.appendChild(opt);
+              })();
+              {% endfor %}
+            } else {
+              Array.from(demandasSet)
+                .sort()
+                .forEach(function (desc) {
+                  const opt = document.createElement('option');
+                  opt.value = desc;
+                  opt.textContent = desc;
+                  selectServico.appendChild(opt);
+                });
+            }
+
+            const arrDemandas = Array.from(demandasSet);
+            if (arrDemandas.includes(selecionadoAtual)) {
+              selectServico.value = selecionadoAtual;
+            } else if (valorInicialServico && arrDemandas.includes(valorInicialServico)) {
+              selectServico.value = valorInicialServico;
+            }
+          }
+
+          selectDiretoria.addEventListener('change', function () {
+            atualizarDepartamentos();
+            atualizarDemandas();
           });
 
-          const selecionadoAtual = selectServico.value;
+          selectDepartamento.addEventListener('change', function () {
+            atualizarDemandas();
+          });
 
-          selectServico.innerHTML = '';
-          const optTodas = document.createElement('option');
-          optTodas.value = '';
-          optTodas.textContent = 'Todas';
-          selectServico.appendChild(optTodas);
-
-          // Se não houver diretoria/dep selecionados, mantém todas as demandas originais
-          if (!dir && !dep && demandasSet.size === 0) {
-            {% for d in todas_demandas %}
-            (function () {
-              const opt = document.createElement('option');
-              opt.value = "{{ d.descricao }}";
-              opt.textContent = "{{ d.descricao }}";
-              selectServico.appendChild(opt);
-            })();
-            {% endfor %}
-          } else {
-            Array.from(demandasSet)
-              .sort()
-              .forEach(function (desc) {
-                const opt = document.createElement('option');
-                opt.value = desc;
-                opt.textContent = desc;
-                selectServico.appendChild(opt);
-              });
-          }
-
-          const arrDemandas = Array.from(demandasSet);
-
-          if (arrDemandas.includes(selecionadoAtual)) {
-            selectServico.value = selecionadoAtual;
-          } else if (valorInicialServico && arrDemandas.includes(valorInicialServico)) {
-            selectServico.value = valorInicialServico;
-          }
-        }
-
-        // listeners
-        selectDiretoria.addEventListener('change', function () {
           atualizarDepartamentos();
           atualizarDemandas();
-        });
+        }
 
-        selectDepartamento.addEventListener('change', function () {
-          atualizarDemandas();
-        });
-
-        // primeira carga
-        atualizarDepartamentos();
-        atualizarDemandas();
+        // Inicializar controles e gráficos (US02)
+        inicializarControlesUS02();
+        renderizarTodosOsGraficos();
       });
 
-      // -----------------------------
-      // GRÁFICOS (Plotly)
-      // -----------------------------
+      // ----------------------------------------------------------
+      // CONFIGURAÇÃO VISUAL & TEMAS (US02: Legendas, rótulos e tema)
+      // ----------------------------------------------------------
+      function obterTemaVisual() {
+        const isDark = document.body.classList.contains('dark-mode');
+        return {
+          isDark: isDark,
+          textColor: isDark ? '#e2e8f0' : '#1e293b',
+          gridColor: isDark ? '#334155' : '#f1f5f9',
+          fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif'
+        };
+      }
+
       function renderMensagemVazia(id) {
-        var el = document.getElementById(id);
+        const el = document.getElementById(id);
         if (el) {
-          el.innerHTML = '<p class="grafico-vazio">Nenhum dado para exibir com os filtros selecionados.</p>';
+          el.innerHTML = '<div style="padding: 3rem 1rem; text-align: center; color: var(--texto-muted);">' +
+            '<i class="fas fa-chart-pie" style="font-size: 2rem; margin-bottom: 0.5rem; display: block; opacity: 0.6;"></i>' +
+            '<p style="margin: 0; font-size: 0.95rem;">Nenhum dado registrado para exibir com os filtros aplicados.</p>' +
+            '</div>';
         }
       }
 
-      function gerarGraficoBarra(id, titulo, campo, topN) {
+      // Paletas semânticas alinhadas à Novacap
+      const paletaCoresStatus = {
+        'Atendido': '#28a745',
+        'Concluído': '#28a745',
+        'Deferido': '#20c997',
+        'Devolvido à RA de origem – adequação de requisitos': '#ffc107',
+        'Devolvido à RA de origem – implantação': '#fd7e14',
+        'Devolvido à RA de origem – parecer técnico de outro órgão': '#f59e0b',
+        'Devolvido à RA de origem – serviço com contrato de natureza continuada pela DC/DO': '#ea580c',
+        'Devolvido à RA de origem – parceria (fornecimento de recursos pela NOVACAP)': '#d97706',
+        'Devolvido à RA de origem – solicitação de fonte orçamentária': '#b45309',
+        'Improcedente – tramita por órgão diferente da NOVACAP': '#dc3545',
+        'Improcedente – tramitação via SGIA': '#e11d48',
+        'Improcedente – tramitação via AppPavimentos': '#be123c',
+        'Improcedente – tramitação via SGMV': '#9f1239',
+        'Enviado à Diretoria das Cidades': '#005CA9',
+        'Enviado à Diretoria de Obras': '#0284c7',
+        'Enviado à Diretoria de Planejamento e Projetos': '#6366f1',
+        'Enviado à Diretoria de Suporte': '#8b5cf6',
+        'Encerrado pela RA de origem': '#6b7280'
+      };
+
+      const paletaPadrao = [
+        '#005CA9', '#0284c7', '#0ea5e9', '#06b6d4', '#14b8a6',
+        '#10b981', '#6366f1', '#8b5cf6', '#f59e0b', '#ec4899', '#64748b'
+      ];
+
+      // ----------------------------------------------------------
+      // 1. GRÁFICO TEMPORAL (US02: Alternância por Mês ou Ano)
+      // ----------------------------------------------------------
+      function renderGraficoTemporal() {
+        const id = 'grafico_temporal';
         if (!dados || !dados.length) {
           renderMensagemVazia(id);
           return;
         }
 
-        var contagem = {};
+        const tipoGrafico = chartStates[id] || 'line';
+        const agregacao = {};
+
         dados.forEach(function (item) {
-          var chave = item[campo] || "Não informado";
-          contagem[chave] = (contagem[chave] || 0) + 1;
+          if (!item.DataISO) return;
+          let chave = '';
+          if (agrupamentoPeriodo === 'ano') {
+            chave = item.Ano || item.DataISO.substring(0, 4);
+          } else {
+            // Mês a Mês: formato YYYY-MM
+            chave = item.MesSort || item.DataISO.substring(0, 7);
+          }
+          if (chave && chave !== 'Sem data' && chave !== '0000-00') {
+            agregacao[chave] = (agregacao[chave] || 0) + 1;
+          }
         });
 
-        var pares = Object.keys(contagem).map(function (k) {
+        const chavesOrdenadas = Object.keys(agregacao).sort();
+        if (!chavesOrdenadas.length) {
+          renderMensagemVazia(id);
+          return;
+        }
+
+        // Formatação legível das labels no eixo X
+        const labelsFormatadas = chavesOrdenadas.map(function (c) {
+          if (agrupamentoPeriodo === 'ano') return c;
+          const partes = c.split('-');
+          return partes.length === 2 ? partes[1] + '/' + partes[0] : c;
+        });
+
+        const valores = chavesOrdenadas.map(function (c) { return agregacao[c]; });
+        const tema = obterTemaVisual();
+
+        let trace;
+        if (tipoGrafico === 'line') {
+          trace = {
+            x: labelsFormatadas,
+            y: valores,
+            type: 'scatter',
+            mode: 'lines+markers+text',
+            text: valores.map(function (v) { return v.toString(); }),
+            textposition: 'top center',
+            textfont: { size: 11, color: tema.textColor, family: tema.fontFamily },
+            line: { color: '#005CA9', width: 3, shape: 'spline' },
+            marker: { size: 8, color: '#003c7a', line: { color: '#ffffff', width: 2 } },
+            fill: 'tozeroy',
+            fillcolor: tema.isDark ? 'rgba(0, 92, 169, 0.25)' : 'rgba(0, 92, 169, 0.08)',
+            hovertemplate: '<b>Período: %{x}</b><br>Volume de Processos: <b>%{y}</b><extra></extra>'
+          };
+        } else {
+          trace = {
+            x: labelsFormatadas,
+            y: valores,
+            type: 'bar',
+            text: valores.map(function (v) { return v.toString(); }),
+            textposition: 'auto',
+            textfont: { size: 11, color: '#ffffff', family: tema.fontFamily },
+            marker: {
+              color: '#005CA9',
+              line: { color: 'rgba(0,0,0,0.1)', width: 1 }
+            },
+            hovertemplate: '<b>Período: %{x}</b><br>Volume de Processos: <b>%{y}</b><extra></extra>'
+          };
+        }
+
+        const layout = {
+          font: { family: tema.fontFamily, color: tema.textColor },
+          paper_bgcolor: 'transparent',
+          plot_bgcolor: 'transparent',
+          xaxis: {
+            title: agrupamentoPeriodo === 'ano' ? 'Ano' : 'Mês / Ano',
+            automargin: true,
+            tickangle: -30,
+            gridcolor: tema.gridColor,
+            linecolor: tema.gridColor
+          },
+          yaxis: {
+            title: 'Quantidade de Processos',
+            automargin: true,
+            gridcolor: tema.gridColor,
+            zerolinecolor: tema.gridColor
+          },
+          margin: { t: 30, b: 60, l: 60, r: 25 },
+          hoverlabel: { bgcolor: '#1e293b', font: { color: '#ffffff' } },
+          showlegend: false
+        };
+
+        Plotly.newPlot(id, [trace], layout, { responsive: true, displayModeBar: false });
+      }
+
+      // ----------------------------------------------------------
+      // 2. FUNÇÃO GENÉRICA DE CATEGORIAS (Status, RA, Diretoria, Demanda)
+      // ----------------------------------------------------------
+      function renderGraficoGenerico(id, campo, opcoes) {
+        if (!dados || !dados.length) {
+          renderMensagemVazia(id);
+          return;
+        }
+
+        const tipoGrafico = chartStates[id] || (opcoes.tipoPadrao || 'bar');
+        const contagem = {};
+        const total = dados.length;
+
+        dados.forEach(function (item) {
+          const valor = (item[campo] || 'Não informado').trim();
+          contagem[valor] = (contagem[valor] || 0) + 1;
+        });
+
+        let pares = Object.keys(contagem).map(function (k) {
           return { label: k, valor: contagem[k] };
         });
 
         pares.sort(function (a, b) { return b.valor - a.valor; });
 
-        if (topN && pares.length > topN) {
-          pares = pares.slice(0, topN);
+        if (opcoes.topN && pares.length > opcoes.topN) {
+          pares = pares.slice(0, opcoes.topN);
         }
 
-        var labels = pares.map(function (p) { return p.label; });
-        var valores = pares.map(function (p) { return p.valor; });
-
-        if (!labels.length) {
+        if (!pares.length) {
           renderMensagemVazia(id);
           return;
         }
 
-        Plotly.newPlot(id, [{
-          x: labels,
-          y: valores,
-          type: 'bar'
-        }], {
-          title: titulo,
-          xaxis: {
+        const labels = pares.map(function (p) { return p.label; });
+        const valores = pares.map(function (p) { return p.valor; });
+        const pcts = valores.map(function (v) { return ((v / total) * 100).toFixed(1); });
+        const tema = obterTemaVisual();
+
+        // Determinação das cores das barras ou fatias
+        const cores = labels.map(function (label, idx) {
+          if (opcoes.usarPaletaStatus && paletaCoresStatus[label]) {
+            return paletaCoresStatus[label];
+          }
+          return paletaPadrao[idx % paletaPadrao.length];
+        });
+
+        let data = [];
+        let layout = {
+          font: { family: tema.fontFamily, color: tema.textColor },
+          paper_bgcolor: 'transparent',
+          plot_bgcolor: 'transparent',
+          margin: { t: 25, b: 80, l: 60, r: 25 },
+          hoverlabel: { bgcolor: '#1e293b', font: { color: '#ffffff' } },
+          showlegend: false
+        };
+
+        if (tipoGrafico === 'pie') {
+          // Rosca (Donut) moderna com legendas e rótulos claros
+          data = [{
+            labels: labels,
+            values: valores,
+            type: 'pie',
+            hole: 0.42,
+            textinfo: 'percent',
+            textposition: 'inside',
+            insidetextorientation: 'horizontal',
+            hoverinfo: 'label+value+percent',
+            marker: {
+              colors: cores,
+              line: { color: tema.isDark ? '#2b2f38' : '#ffffff', width: 2 }
+            },
+            hovertemplate: '<b>%{label}</b><br>Processos: <b>%{value}</b><br>Participação: <b>%{percent}</b><extra></extra>'
+          }];
+          layout.showlegend = true;
+          layout.legend = {
+            orientation: 'h',
+            y: -0.15,
+            x: 0,
+            font: { size: 10, color: tema.textColor }
+          };
+          layout.margin = { t: 20, b: 80, l: 20, r: 20 };
+        } else if (tipoGrafico === 'bar-h') {
+          // Barras horizontais (excelente para demandas com nomes longos)
+          pares.reverse(); // para maior aparecer no topo
+          const labelsH = pares.map(function (p) { return p.label; });
+          const valoresH = pares.map(function (p) { return p.valor; });
+          const pctsH = valoresH.map(function (v) { return ((v / total) * 100).toFixed(1); });
+
+          data = [{
+            x: valoresH,
+            y: labelsH,
+            type: 'bar',
+            orientation: 'h',
+            text: valoresH.map(function (v) { return v.toString(); }),
+            textposition: 'auto',
+            textfont: { size: 11, color: '#ffffff', family: tema.fontFamily },
+            cliponaxis: false,
+            marker: {
+              color: cores.slice().reverse(),
+              line: { color: 'rgba(0,0,0,0.08)', width: 1 }
+            },
+            customdata: pctsH,
+            hovertemplate: '<b>%{y}</b><br>Quantidade: <b>%{x}</b> processos<br>Participação: <b>%{customdata}%</b><extra></extra>'
+          }];
+          layout.xaxis = { title: 'Qtd. Processos', automargin: true, gridcolor: tema.gridColor };
+          layout.yaxis = { automargin: true, gridcolor: tema.gridColor };
+          layout.margin = { t: 20, b: 50, l: 180, r: 30 };
+        } else {
+          // Barras verticais com rótulo no topo e legendas claras
+          data = [{
+            x: labels,
+            y: valores,
+            type: 'bar',
+            text: valores.map(function (v) { return v.toString(); }),
+            textposition: 'auto',
+            textfont: { size: 11, color: '#ffffff', family: tema.fontFamily },
+            cliponaxis: false,
+            marker: {
+              color: cores,
+              line: { color: 'rgba(0,0,0,0.08)', width: 1 }
+            },
+            customdata: pcts,
+            hovertemplate: '<b>%{x}</b><br>Quantidade: <b>%{y}</b> processos<br>Participação: <b>%{customdata}%</b><extra></extra>'
+          }];
+          layout.xaxis = {
             automargin: true,
-            tickangle: -30
-          },
-          yaxis: { title: 'Qtd. Processos' },
-          margin: { t: 50, b: 120, l: 60, r: 20 }
-        }, {
-          responsive: true
+            tickangle: -30,
+            gridcolor: tema.gridColor
+          };
+          layout.yaxis = {
+            title: 'Qtd. Processos',
+            automargin: true,
+            gridcolor: tema.gridColor
+          };
+          layout.margin = { t: 25, b: 110, l: 55, r: 25 };
+        }
+
+        Plotly.newPlot(id, data, layout, { responsive: true, displayModeBar: false });
+      }
+
+      function renderizarTodosOsGraficos() {
+        renderGraficoTemporal();
+        renderGraficoGenerico('grafico_status', 'Status', { tipoPadrao: 'bar', usarPaletaStatus: true });
+        renderGraficoGenerico('grafico_ra', 'RA', { tipoPadrao: 'bar', topN: 10 });
+        renderGraficoGenerico('grafico_diretoria', 'Diretoria', { tipoPadrao: 'bar' });
+        renderGraficoGenerico('grafico_servico', 'Serviço', { tipoPadrao: 'bar-h', topN: 10 });
+      }
+
+      // ----------------------------------------------------------
+      // 3. CONTROLES INTERATIVOS (US02: Categoria, Período e Tipo)
+      // ----------------------------------------------------------
+      function inicializarControlesUS02() {
+        // Alternador de Categoria (Pills)
+        const categoryPills = document.querySelectorAll('#category-pills .btn-pill');
+        const chartCards = document.querySelectorAll('#graficos-container .grafico-card');
+
+        categoryPills.forEach(function (pill) {
+          pill.addEventListener('click', function () {
+            categoryPills.forEach(function (p) { p.classList.remove('active'); });
+            pill.classList.add('active');
+
+            const categoria = pill.getAttribute('data-category');
+
+            chartCards.forEach(function (card) {
+              const cardCategory = card.getAttribute('data-chart-category');
+              if (categoria === 'todas' || cardCategory === categoria) {
+                card.classList.remove('chart-view-hidden');
+              } else {
+                card.classList.add('chart-view-hidden');
+              }
+            });
+
+            // Reajusta dimensões dos gráficos visíveis
+            window.dispatchEvent(new Event('resize'));
+          });
+        });
+
+        // Alternador de Período (Mês a Mês vs Ano a Ano)
+        const periodPills = document.querySelectorAll('#period-pills .btn-pill');
+        periodPills.forEach(function (pill) {
+          pill.addEventListener('click', function () {
+            periodPills.forEach(function (p) { p.classList.remove('active'); });
+            pill.classList.add('active');
+
+            agrupamentoPeriodo = pill.getAttribute('data-period');
+            renderGraficoTemporal();
+          });
+        });
+
+        // Alternador individual de Tipo de Gráfico em cada card
+        const chartTypeBtns = document.querySelectorAll('.chart-type-btn');
+        chartTypeBtns.forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            const targetId = btn.getAttribute('data-target');
+            const newType = btn.getAttribute('data-chart-type');
+
+            // Atualiza botões ativos no card correspondente
+            const parentHeader = btn.closest('.grafico-header-actions');
+            if (parentHeader) {
+              parentHeader.querySelectorAll('.chart-type-btn').forEach(function (b) {
+                b.classList.remove('active');
+              });
+            }
+            btn.classList.add('active');
+
+            chartStates[targetId] = newType;
+
+            // Redesenha o gráfico afetado
+            if (targetId === 'grafico_temporal') {
+              renderGraficoTemporal();
+            } else if (targetId === 'grafico_status') {
+              renderGraficoGenerico('grafico_status', 'Status', { tipoPadrao: newType, usarPaletaStatus: true });
+            } else if (targetId === 'grafico_ra') {
+              renderGraficoGenerico('grafico_ra', 'RA', { tipoPadrao: newType, topN: 10 });
+            } else if (targetId === 'grafico_diretoria') {
+              renderGraficoGenerico('grafico_diretoria', 'Diretoria', { tipoPadrao: newType });
+            } else if (targetId === 'grafico_servico') {
+              renderGraficoGenerico('grafico_servico', 'Serviço', { tipoPadrao: newType, topN: 10 });
+            }
+          });
+        });
+
+        // Reage à alternância de tema Claro / Escuro
+        const observer = new MutationObserver(function (mutations) {
+          mutations.forEach(function (mutation) {
+            if (mutation.attributeName === 'class') {
+              renderizarTodosOsGraficos();
+            }
+          });
+        });
+        observer.observe(document.body, { attributes: true });
+
+        // Responsividade automática de redimensionamento
+        window.addEventListener('resize', function () {
+          ['grafico_temporal', 'grafico_status', 'grafico_ra', 'grafico_diretoria', 'grafico_servico'].forEach(function (id) {
+            const el = document.getElementById(id);
+            if (el && el.data) {
+              Plotly.Plots.resize(el);
+            }
+          });
         });
       }
 
-      // Status geral dos registros filtrados
-      gerarGraficoBarra("grafico_status", "Distribuição por Status", "Status");
-
-      // Top 10 RAs
-      gerarGraficoBarra("grafico_ra", "Top RAs por quantidade de processos", "RA", 10);
-
-      // Diretoria
-      gerarGraficoBarra("grafico_diretoria", "Distribuição por Diretoria", "Diretoria");
-
-      // Departamentos
-      gerarGraficoBarra("grafico_departamento", "Distribuição por Departamento", "Departamento");
     })();
-    /* eslint-enable */
   </script>
 
   <!-- 📄 TABELA DE RESULTADOS (FORMATO PLANILHA MODERNA) -->
