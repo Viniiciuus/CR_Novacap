@@ -226,7 +226,7 @@ nav.navbar-nav {
     align-items: center;
     gap: 0.5rem;
     padding: 0.5rem 0.95rem;
-    border-radius: var(--radius-md);
+    border-radius: 10px 3px 10px 3px;
     border: 1px solid transparent;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -241,6 +241,7 @@ nav.navbar-nav {
     color: #ffffff;
     background: rgba(255, 255, 255, 0.12);
     border-color: rgba(255, 255, 255, 0.16);
+    border-radius: 3px 10px 3px 10px;
     transform: translateY(-1px);
 }
 
@@ -263,12 +264,14 @@ nav.navbar-nav {
     color: #fca5a5;
     background: rgba(239, 68, 68, 0.12);
     border: 1px solid rgba(239, 68, 68, 0.25);
+    border-radius: 4px 12px 4px 12px;
 }
 
 .nav-link-logout:hover {
     background: #dc2626;
     color: #ffffff;
     border-color: #dc2626;
+    border-radius: 12px 4px 12px 4px;
     box-shadow: 0 3px 10px rgba(220, 38, 38, 0.35);
 }
 
@@ -318,84 +321,182 @@ header.text-center p {
 }
 
 /* ============================================================
-   🔘 BOTÕES MODERNOS E MINIMALISTAS
+   🔘 BOTÕES MODERNOS, ASSIMÉTRICOS E INTELIGENTES (UI/UX)
    ============================================================ */
-.button-toolbar,
-.button-group {
+.button-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.1rem;
+    flex-wrap: wrap;
+    margin-top: 1.8rem;
+}
+
+.button-toolbar.toolbar-center {
+    justify-content: center;
+}
+
+.button-toolbar.toolbar-end {
+    justify-content: flex-end;
+}
+
+.button-toolbar-left {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.button-toolbar-right {
     display: flex;
     align-items: center;
     gap: 0.85rem;
     flex-wrap: wrap;
+    margin-left: auto;
 }
 
+.button-group {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+/* Base do Botão com Assimetria Sutil */
 .btn {
-    padding: 0.75rem 1.6rem;
-    font-size: 0.95rem;
+    padding: 0.76rem 1.65rem 0.76rem 1.35rem;
+    font-size: 0.94rem;
     font-weight: 600;
-    border-radius: var(--radius-md);
+    border-radius: 12px 4px 12px 4px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 0.5rem;
+    gap: 0.55rem;
     text-decoration: none;
     cursor: pointer;
-    border: 1px solid transparent;
-    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-                box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+    border: 1.5px solid transparent;
+    transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1),
+                box-shadow 0.22s cubic-bezier(0.4, 0, 0.2, 1),
+                border-radius 0.25s ease,
                 background-color 0.2s ease,
-                color 0.2s ease;
+                color 0.2s ease,
+                border-color 0.2s ease;
+    user-select: none;
 }
 
+.btn:active {
+    transform: translateY(1px) scale(0.99);
+}
+
+/* Tamanho Compacto com Assimetria Proporcional */
 .btn-sm {
-    padding: 0.45rem 0.9rem;
-    font-size: 0.85rem;
-    border-radius: var(--radius-sm);
+    padding: 0.45rem 1.05rem 0.45rem 0.85rem;
+    font-size: 0.84rem;
+    border-radius: 9px 3px 9px 3px;
+    font-weight: 600;
 }
 
-/* Primário (Gradiente institucional sutil) */
+.btn-sm:hover {
+    border-radius: 3px 9px 3px 9px;
+}
+
+/* 🟦 Botão Primário (Ação Principal / CTA Destacada) */
 .btn-primary {
-    background: linear-gradient(135deg, #004a8f, #007bff);
+    background: linear-gradient(135deg, #004a8f 0%, #007bff 100%);
     color: #ffffff !important;
     border: none;
-    box-shadow: 0 4px 12px rgba(0, 74, 143, 0.22);
+    border-radius: 16px 5px 16px 5px;
+    min-width: 165px;
+    padding: 0.82rem 2.2rem 0.82rem 1.65rem;
+    font-weight: 700;
+    letter-spacing: 0.015em;
+    box-shadow: -2px 5px 16px rgba(0, 74, 143, 0.28);
 }
 
 .btn-primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 7px 20px rgba(0, 74, 143, 0.35);
-    filter: brightness(1.04);
+    border-radius: 5px 16px 5px 16px;
+    box-shadow: -3px 8px 24px rgba(0, 74, 143, 0.42);
+    filter: brightness(1.06);
 }
 
 .btn-primary:active {
     transform: translateY(0);
 }
 
-/* Outline Azul */
+/* 🔷 Botão Outline Azul (Ação Secundária / Navegação de Suporte) */
 .btn-outline-blue {
     border: 1.5px solid var(--azul-novacap);
     color: var(--azul-novacap);
-    background: transparent;
+    background: var(--fundo-card);
+    border-radius: 14px 6px 14px 6px;
+    min-width: 145px;
+    padding: 0.76rem 1.7rem 0.76rem 1.35rem;
+    box-shadow: 0 2px 8px rgba(0, 92, 169, 0.08);
 }
 
 .btn-outline-blue:hover {
     background: var(--azul-novacap);
     color: #ffffff !important;
+    border-color: var(--azul-novacap);
+    border-radius: 6px 14px 6px 14px;
     transform: translateY(-2px);
-    box-shadow: 0 4px 14px rgba(0, 92, 169, 0.25);
+    box-shadow: -2px 6px 18px rgba(0, 92, 169, 0.28);
 }
 
-/* Outline Aviso/Âmbar */
+/* ⚪ Botão Neutro / Cinza (Ações de Cancelar / Limpar / Voltar) */
+.btn-outline-gray,
+.btn-secondary {
+    border: 1.5px solid var(--borda-suave);
+    color: var(--texto-secundario);
+    background: var(--fundo-card);
+    border-radius: 5px 14px 5px 14px;
+    min-width: 125px;
+    padding: 0.72rem 1.45rem 0.72rem 1.25rem;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+}
+
+.btn-outline-gray:hover,
+.btn-secondary:hover {
+    background: var(--borda-suave);
+    color: var(--texto-titulo);
+    border-color: var(--texto-muted);
+    border-radius: 14px 5px 14px 5px;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.07);
+}
+
+/* 🟧 Botão Aviso / Âmbar */
+.btn-warning {
+    background: #d97706;
+    color: #ffffff !important;
+    border: none;
+    border-radius: 6px 16px 6px 16px;
+    padding: 0.76rem 1.75rem 0.76rem 1.4rem;
+    box-shadow: -2px 4px 12px rgba(217, 119, 6, 0.25);
+}
+
+.btn-warning:hover {
+    background: #b45309;
+    border-radius: 16px 6px 16px 6px;
+    transform: translateY(-2px);
+    box-shadow: -3px 7px 20px rgba(217, 119, 6, 0.38);
+}
+
 .btn-outline-warning {
     border: 1.5px solid #d97706;
     color: #b45309;
     background: transparent;
+    border-radius: 6px 16px 6px 16px;
+    padding: 0.74rem 1.6rem 0.74rem 1.3rem;
 }
 
 .btn-outline-warning:hover {
     background: #d97706;
     color: #ffffff !important;
+    border-radius: 16px 6px 16px 6px;
     transform: translateY(-2px);
-    box-shadow: 0 4px 14px rgba(217, 119, 6, 0.25);
+    box-shadow: -2px 6px 16px rgba(217, 119, 6, 0.3);
 }
 
 body.dark-mode .btn-outline-warning {
@@ -408,59 +509,38 @@ body.dark-mode .btn-outline-warning:hover {
     color: #1e293b !important;
 }
 
-/* Outline Neutro/Cinza */
-.btn-outline-gray,
-.btn-secondary {
-    border: 1.5px solid var(--borda-suave);
-    color: var(--texto-secundario);
-    background: var(--fundo-card);
-}
-
-.btn-outline-gray:hover,
-.btn-secondary:hover {
-    background: var(--borda-suave);
-    color: var(--texto-titulo);
-    transform: translateY(-2px);
-}
-
-/* Alerta / Perigo (Vermelho) */
+/* 🟥 Botão Alerta / Perigo (Exclusão Crítica) */
 .btn-danger {
     background: #dc2626;
     color: #ffffff !important;
     border: none;
-    box-shadow: 0 3px 10px rgba(220, 38, 38, 0.2);
+    border-radius: 16px 5px 16px 5px;
+    padding: 0.76rem 1.8rem 0.76rem 1.45rem;
+    box-shadow: -2px 4px 14px rgba(220, 38, 38, 0.28);
 }
 
 .btn-danger:hover {
     background: #b91c1c;
+    border-radius: 5px 16px 5px 16px;
     transform: translateY(-2px);
-    box-shadow: 0 6px 18px rgba(220, 38, 38, 0.35);
+    box-shadow: -3px 7px 22px rgba(220, 38, 38, 0.42);
 }
 
-/* Aviso (Amarelo/Âmbar) */
-.btn-warning {
-    background: #d97706;
-    color: #ffffff !important;
-    border: none;
-}
-
-.btn-warning:hover {
-    background: #b45309;
-    transform: translateY(-2px);
-}
-
-/* Sucesso (Verde) */
+/* 🟩 Botão Sucesso (Aprovação / Confirmação) */
 .btn-success {
     background: #16a34a;
     color: #ffffff !important;
     border: none;
-    box-shadow: 0 3px 10px rgba(22, 163, 74, 0.2);
+    border-radius: 14px 5px 14px 5px;
+    padding: 0.76rem 1.8rem 0.76rem 1.45rem;
+    box-shadow: -2px 4px 14px rgba(22, 163, 74, 0.25);
 }
 
 .btn-success:hover {
     background: #15803d;
+    border-radius: 5px 14px 5px 14px;
     transform: translateY(-2px);
-    box-shadow: 0 6px 18px rgba(22, 163, 74, 0.35);
+    box-shadow: -3px 7px 20px rgba(22, 163, 74, 0.4);
 }
 
 
@@ -720,6 +800,25 @@ textarea {
     color: var(--texto-secundario);
 }
 
+/* Agrupamento Assimétrico Conectado dos Botões de Exportação */
+.export-bar .button-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+}
+
+.export-bar .button-group .btn-sm:first-child {
+    border-radius: 12px 3px 3px 12px;
+}
+
+.export-bar .button-group .btn-sm:nth-child(2) {
+    border-radius: 4px;
+}
+
+.export-bar .button-group .btn-sm:last-child {
+    border-radius: 3px 12px 12px 3px;
+}
+
 .table-responsive {
     width: 100%;
     overflow-x: auto;
@@ -777,25 +876,28 @@ table.table-hover {
 .btn-load-more {
     display: inline-flex;
     align-items: center;
-    gap: 0.6rem;
-    padding: 0.75rem 2.2rem;
-    font-size: 0.96rem;
-    font-weight: 600;
+    justify-content: center;
+    gap: 0.65rem;
+    padding: 0.92rem 2.8rem 0.92rem 2.2rem;
+    font-size: 0.98rem;
+    font-weight: 700;
+    min-width: 290px;
     color: var(--azul-novacap);
     background: var(--fundo-card);
     border: 1.5px solid var(--azul-novacap);
-    border-radius: var(--radius-pill);
+    border-radius: 28px 8px 28px 8px;
     cursor: pointer;
     text-decoration: none;
-    transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: var(--sombra-sm);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: -2px 5px 16px rgba(0, 92, 169, 0.12);
 }
 
 .btn-load-more:hover {
     background: var(--azul-novacap);
     color: #ffffff !important;
+    border-radius: 8px 28px 8px 28px;
     transform: translateY(-2px);
-    box-shadow: 0 6px 18px rgba(0, 92, 169, 0.25);
+    box-shadow: -3px 8px 22px rgba(0, 92, 169, 0.28);
 }
 
 .btn-load-more:active {
@@ -1056,24 +1158,26 @@ footer p {
     right: 1.5rem;
     width: 48px;
     height: 48px;
-    border-radius: 50%;
+    border-radius: 16px 6px 16px 6px;
     background-color: var(--fundo-card);
     border: 1.5px solid var(--borda-suave);
     color: var(--texto-titulo);
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: var(--sombra-lg);
+    box-shadow: -2px 6px 18px rgba(0, 0, 0, 0.15);
     cursor: pointer;
     z-index: 999;
     font-size: 1.15rem;
     transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
-                background-color 0.25s ease,
-                color 0.25s ease;
+                border-radius 0.25s ease,
+                background-color 0.2s ease,
+                color 0.2s ease;
 }
 
 #toggle-theme:hover {
-    transform: scale(1.12) rotate(15deg);
+    transform: scale(1.1) rotate(10deg);
+    border-radius: 6px 16px 6px 16px;
     color: #eab308;
     background-color: var(--fundo-container);
 }
@@ -1165,26 +1269,28 @@ body.dark-mode .home-subtitle {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 0.7rem;
+    gap: 0.75rem;
     background: linear-gradient(135deg, #004a8f, #007bff);
     color: #ffffff !important;
-    padding: 0.95rem 2.4rem;
-    font-size: 1.1rem;
-    font-weight: 600;
+    padding: 1.05rem 2.8rem 1.05rem 2.2rem;
+    font-size: 1.12rem;
+    font-weight: 700;
     border: none;
-    border-radius: var(--radius-md);
-    box-shadow: 0 4px 14px rgba(0, 74, 143, 0.28);
+    border-radius: 24px 7px 24px 7px;
+    box-shadow: -3px 6px 20px rgba(0, 74, 143, 0.32);
     text-decoration: none;
     cursor: pointer;
     transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1),
                 box-shadow 0.22s cubic-bezier(0.4, 0, 0.2, 1),
+                border-radius 0.25s ease,
                 filter 0.22s ease;
 }
 
 .home-btn-primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 22px rgba(0, 74, 143, 0.38);
-    filter: brightness(1.05);
+    border-radius: 7px 24px 7px 24px;
+    box-shadow: -4px 10px 28px rgba(0, 74, 143, 0.45);
+    filter: brightness(1.06);
 }
 
 .home-btn-primary:active {
@@ -1726,10 +1832,10 @@ body.dark-mode .sort-icon-active {
     align-items: center;
     gap: 1rem;
     background: var(--fundo-card);
-    padding: 0.45rem 0.9rem;
-    border-radius: var(--radius-pill);
+    padding: 0.5rem 1.1rem;
+    border-radius: 16px 5px 16px 5px;
     border: 1px solid var(--borda-suave);
-    box-shadow: var(--sombra-sm);
+    box-shadow: -1px 3px 10px rgba(0, 0, 0, 0.04);
 }
 
 .live-dot-container {
@@ -1776,14 +1882,14 @@ body.dark-mode .sort-icon-active {
 .quick-action-card {
     background: var(--fundo-card);
     border: 1px solid var(--borda-suave);
-    border-radius: var(--radius-lg);
-    padding: 1.1rem 1.25rem;
+    border-radius: 16px 5px 16px 5px;
+    padding: 1.15rem 1.35rem 1.15rem 1.15rem;
     text-decoration: none;
     color: var(--texto-corpo);
     display: flex;
     align-items: center;
     gap: 1rem;
-    box-shadow: var(--sombra-sm);
+    box-shadow: -2px 3px 10px rgba(0, 0, 0, 0.04);
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     overflow: hidden;
@@ -1791,14 +1897,15 @@ body.dark-mode .sort-icon-active {
 
 .quick-action-card:hover {
     transform: translateY(-3px);
-    box-shadow: var(--sombra-hover);
+    border-radius: 5px 16px 5px 16px;
+    box-shadow: -3px 8px 22px rgba(0, 74, 143, 0.16);
     border-color: var(--azul-novacap);
 }
 
 .quick-action-icon {
     width: 44px;
     height: 44px;
-    border-radius: var(--radius-md);
+    border-radius: 12px 4px 12px 4px;
     background: var(--azul-claro);
     color: var(--azul-novacap);
     display: flex;
@@ -1806,7 +1913,7 @@ body.dark-mode .sort-icon-active {
     justify-content: center;
     font-size: 1.25rem;
     flex-shrink: 0;
-    transition: transform 0.2s ease;
+    transition: transform 0.22s ease, border-radius 0.25s ease;
 }
 
 body.dark-mode .quick-action-icon {
@@ -1816,6 +1923,7 @@ body.dark-mode .quick-action-icon {
 
 .quick-action-card:hover .quick-action-icon {
     transform: scale(1.1);
+    border-radius: 4px 12px 4px 12px;
 }
 
 .quick-action-info {

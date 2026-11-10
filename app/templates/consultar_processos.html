@@ -77,16 +77,20 @@
       </div>
     </div>
 
-    <!-- Botões -->
-    <div class="button-toolbar" style="justify-content: center; margin-top: 1.5rem;">
-      <button type="submit" class="btn btn-primary">
-        <i class="fas fa-search"></i>
-        <span>Consultar</span>
-      </button>
-      <a href="{{ url_for('processos_bp.consultar_processos') }}" class="btn btn-outline-gray">
-        <i class="fas fa-eraser"></i>
-        <span>Limpar Filtros</span>
-      </a>
+    <!-- Botões com Disposição Assimétrica e Hierarquia Visual -->
+    <div class="button-toolbar" style="margin-top: 1.8rem;">
+      <div class="button-toolbar-left">
+        <a href="{{ url_for('processos_bp.consultar_processos') }}" class="btn btn-outline-gray" title="Limpar todos os campos de busca">
+          <i class="fas fa-eraser"></i>
+          <span>Limpar Filtros</span>
+        </a>
+      </div>
+      <div class="button-toolbar-right">
+        <button type="submit" class="btn btn-primary" title="Executar consulta com os filtros aplicados">
+          <i class="fas fa-search"></i>
+          <span>Consultar Processos</span>
+        </button>
+      </div>
     </div>
   </form>
 
@@ -334,11 +338,18 @@
     </div>
   {% endif %}
 
-  <!-- Barra de Retorno -->
-  <div class="button-toolbar" style="justify-content: center; margin-top: 2.5rem;">
-    <a href="{{ url_for('processos_bp.dashboard_processos') }}" class="btn btn-outline-gray">
-      <i class="fas fa-chart-pie"></i> Voltar ao Painel
-    </a>
+  <!-- Barra Inferior com Navegação Assimétrica -->
+  <div class="button-toolbar" style="margin-top: 2.5rem;">
+    <div class="button-toolbar-left">
+      <a href="{{ url_for('processos_bp.dashboard_processos') }}" class="btn btn-outline-gray">
+        <i class="fas fa-arrow-left"></i> <span>Voltar ao Painel</span>
+      </a>
+    </div>
+    <div class="button-toolbar-right">
+      <a href="{{ url_for('processos_bp.cadastro_processo') }}" class="btn btn-primary">
+        <i class="fas fa-plus-circle"></i> <span>Novo Processo</span>
+      </a>
+    </div>
   </div>
 
 </section>

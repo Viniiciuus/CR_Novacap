@@ -213,11 +213,21 @@
   </div>
   {% endif %}
 
-  <!-- Barra de Retorno -->
-  <div class="button-toolbar" style="justify-content: center; margin-top: 2.5rem;">
-    <a href="{{ url_for('processos_bp.dashboard_processos') }}" class="btn btn-outline-gray">
-      <i class="fas fa-chart-pie"></i> Voltar ao Painel
-    </a>
+  <!-- Barra de Retorno e Navegação Rápida com Disposição Assimétrica -->
+  <div class="button-toolbar" style="margin-top: 2.5rem;">
+    <div class="button-toolbar-left">
+      <a href="{{ url_for('processos_bp.dashboard_processos') }}" class="btn btn-outline-gray">
+        <i class="fas fa-arrow-left"></i> <span>Voltar ao Painel</span>
+      </a>
+    </div>
+    <div class="button-toolbar-right">
+      <a href="{{ url_for('processos_bp.consultar_processos') }}" class="btn btn-outline-blue">
+        <i class="fas fa-search"></i> <span>Consultar Processos</span>
+      </a>
+      <a href="{{ url_for('processos_bp.cadastro_processo') }}" class="btn btn-primary">
+        <i class="fas fa-plus-circle"></i> <span>Novo Processo</span>
+      </a>
+    </div>
   </div>
 
 </section>

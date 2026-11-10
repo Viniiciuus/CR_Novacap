@@ -67,17 +67,20 @@
         </div>
       </div>
 
-      <!-- Botões de Ação -->
-      <div class="button-toolbar" style="justify-content: center; margin-top: 2rem;">
-        <button type="submit" class="btn btn-primary">
-          <i class="fas fa-sync-alt"></i>
-          <span>Atualizar Senha</span>
-        </button>
-
-        <a href="{{ url_for('main_bp.login') }}" class="btn btn-outline-gray">
-          <i class="fas fa-arrow-left"></i>
-          <span>Voltar ao Login</span>
-        </a>
+      <!-- Botões de Ação com Disposição Assimétrica -->
+      <div class="button-toolbar" style="margin-top: 2rem;">
+        <div class="button-toolbar-left">
+          <a href="{{ url_for('main_bp.login') }}" class="btn btn-outline-gray">
+            <i class="fas fa-arrow-left"></i>
+            <span>Voltar ao Login</span>
+          </a>
+        </div>
+        <div class="button-toolbar-right">
+          <button type="submit" class="btn btn-primary">
+            <i class="fas fa-sync-alt"></i>
+            <span>Atualizar Senha</span>
+          </button>
+        </div>
       </div>
     </form>
 

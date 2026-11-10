@@ -103,22 +103,25 @@
                 placeholder="Observações complementares (opcional)..."></textarea>
     </div>
 
-    <!-- Botões de Ação -->
-    <div class="button-toolbar" style="justify-content: center; margin-top: 2rem;">
-      <button type="submit" class="btn btn-primary" onclick="this.disabled=true;this.form.submit();">
-        <i class="fas fa-save"></i>
-        <span>Salvar Processo</span>
-      </button>
+    <!-- Botões de Ação com Disposição Assimétrica -->
+    <div class="button-toolbar" style="margin-top: 2.2rem;">
+      <div class="button-toolbar-left">
+        <a href="{{ url_for('processos_bp.dashboard_processos') }}" class="btn btn-outline-gray">
+          <i class="fas fa-arrow-left"></i>
+          <span>Voltar ao Painel</span>
+        </a>
+        <a href="{{ url_for('processos_bp.consultar_processos') }}" class="btn btn-outline-blue">
+          <i class="fas fa-search"></i>
+          <span>Consultar Processos</span>
+        </a>
+      </div>
 
-      <a href="{{ url_for('processos_bp.consultar_processos') }}" class="btn btn-outline-blue">
-        <i class="fas fa-search"></i>
-        <span>Consultar Processos</span>
-      </a>
-
-      <a href="{{ url_for('processos_bp.dashboard_processos') }}" class="btn btn-outline-gray">
-        <i class="fas fa-chart-pie"></i>
-        <span>Voltar ao Painel</span>
-      </a>
+      <div class="button-toolbar-right">
+        <button type="submit" class="btn btn-primary" onclick="this.disabled=true;this.form.submit();">
+          <i class="fas fa-save"></i>
+          <span>Salvar Processo</span>
+        </button>
+      </div>
     </div>
   </form>
 </section>

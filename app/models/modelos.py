@@ -267,22 +267,28 @@ class Status(db.Model):
 
 
 # ==========================================================
-# 🗺️ UNIDADES SOLICITANTES (EX-REGIÕES ADMINISTRATIVAS / FILIAIS)
+# 🗺️ REGIÕES ADMINISTRATIVAS (DF) / UNIDADES SOLICITANTES
 # ==========================================================
-class UnidadeSolicitante(db.Model):
-    __tablename__ = 'unidades_solicitantes'
+class RegiaoAdministrativa(db.Model):
+    __tablename__ = 'regioes_administrativas'
 
-    id_unidade = db.Column(db.Integer, primary_key=True)
-    id_tenant = db.Column(db.Integer, db.ForeignKey('tenants.id_tenant'), nullable=True)
-    codigo = db.Column(db.String(20), nullable=False)
-    nome_unidade = db.Column(db.String(100), nullable=False)
-    descricao = db.Column(db.String(150))
+    id_ra = db.Column(db.Integer, primary_key=True)
+    codigo_ra = db.Column(db.String(10), unique=True, nullable=False)
+    nome_ra = db.Column(db.String(100), nullable=False)
+    descricao_ra = db.Column(db.String(150), nullable=False)
 
-    tenant = db.relationship('Tenant', backref='unidades_solicitantes', lazy=True)
+    # Synonyms do SQLAlchemy para suportar consultas com nome_unidade / descricao
+    id_unidade = db.synonym('id_ra')
+    codigo = db.synonym('codigo_ra')
+    nome_unidade = db.synonym('nome_ra')
+    descricao = db.synonym('descricao_ra')
+
+    def __repr__(self):
+        return f"<RegiaoAdministrativa {self.codigo_ra} - {self.nome_ra}>"
 
 
-# Alias para compatibilidade com a versão legada
-RegiaoAdministrativa = UnidadeSolicitante
+# Alias para compatibilidade
+UnidadeSolicitante = RegiaoAdministrativa
 
 
 # ==========================================================

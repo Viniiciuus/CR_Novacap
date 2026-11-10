@@ -416,25 +416,26 @@ body.dark-mode .btn-pill-group {
     border-color: #3a3f4b;
 }
 
-/* btn-pill: escala do btn-sm (0.88rem, padding reduzido) */
+/* btn-pill: escala do btn-sm com assimetria moderna */
 .btn-pill {
-    padding: 0.35rem 0.85rem;
+    padding: 0.38rem 0.95rem 0.38rem 0.75rem;
     font-size: 0.88rem;
     font-weight: 600;
     border: none;
     background: transparent;
     color: #6c757d;
-    border-radius: 16px;
+    border-radius: 12px 4px 12px 4px;
     cursor: pointer;
-    transition: all 0.2s ease-in-out;
+    transition: all 0.22s ease-in-out;
     display: inline-flex;
     align-items: center;
-    gap: 0.3rem;
+    gap: 0.35rem;
     font-family: inherit;
 }
 
 .btn-pill:hover {
     color: #002d62;
+    border-radius: 4px 12px 4px 12px;
 }
 
 body.dark-mode .btn-pill:hover {
@@ -444,7 +445,8 @@ body.dark-mode .btn-pill:hover {
 .btn-pill.active {
     background-color: #005CA9;
     color: #ffffff;
-    box-shadow: 0 2px 4px rgba(0, 92, 169, 0.25);
+    border-radius: 4px 12px 4px 12px;
+    box-shadow: -2px 3px 8px rgba(0, 92, 169, 0.35);
 }
 
 /* ============================================================

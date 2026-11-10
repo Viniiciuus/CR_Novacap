@@ -110,18 +110,21 @@
 
     </div>
 
-    <!-- Botões -->
-    <div class="button-toolbar" style="margin-top: 1.5rem;">
-      <button type="submit" class="btn btn-primary">
-        <i class="fas fa-filter"></i>
-        <span>Aplicar Filtros</span>
-      </button>
-
-      <a href="{{ url_for('relatorios_bp.relatorios_avancados') }}"
-         class="btn btn-outline-gray">
-        <i class="fas fa-eraser"></i>
-        <span>Limpar Filtros</span>
-      </a>
+    <!-- Botões com Disposição Assimétrica -->
+    <div class="button-toolbar" style="margin-top: 1.8rem;">
+      <div class="button-toolbar-left">
+        <a href="{{ url_for('relatorios_bp.relatorios_avancados') }}"
+           class="btn btn-outline-gray" title="Limpar todos os filtros">
+          <i class="fas fa-eraser"></i>
+          <span>Limpar Filtros</span>
+        </a>
+      </div>
+      <div class="button-toolbar-right">
+        <button type="submit" class="btn btn-primary" title="Filtrar dados do relatório">
+          <i class="fas fa-filter"></i>
+          <span>Aplicar Filtros</span>
+        </button>
+      </div>
     </div>
 
   </form>
@@ -993,6 +996,20 @@
     </div>
     {% endif %}
 
+  </div>
+
+  <!-- Barra de Navegação Inferior com Disposição Assimétrica -->
+  <div class="button-toolbar" style="margin-top: 2.5rem;">
+    <div class="button-toolbar-left">
+      <a href="{{ url_for('processos_bp.dashboard_processos') }}" class="btn btn-outline-gray">
+        <i class="fas fa-arrow-left"></i> <span>Voltar ao Painel</span>
+      </a>
+    </div>
+    <div class="button-toolbar-right">
+      <a href="{{ url_for('processos_bp.consultar_processos') }}" class="btn btn-outline-blue">
+        <i class="fas fa-search"></i> <span>Consultar Processos</span>
+      </a>
+    </div>
   </div>
 
 </section>

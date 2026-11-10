@@ -14,8 +14,7 @@ with app.app_context():
     if not ativos:
         print("✅ Nenhum usuário ativo disponível para bloqueio.")
     else:
-        print("Usuários ativos:
-")
+        print("Usuários ativos:\n")
         for usuario in ativos:
             print(f"ID: {usuario.id_usuario} | Nome: {usuario.nome} | Usuário: {usuario.usuario} | Email: {usuario.email}")
             escolha = input("Deseja bloquear este usuário? (s/n): ").strip().lower()
